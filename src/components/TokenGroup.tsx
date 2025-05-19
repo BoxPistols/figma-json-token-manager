@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { FlattenedToken } from '../types';
 import { calculateContrastRatio, isLightColor } from '../utils/colorUtils';
 
@@ -52,7 +53,7 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
         {Object.entries(groupedTokens).map(([parentPath, groupTokens]) => (
           <div key={parentPath} className="space-y-2">
             {parentPath && (
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <h4 className="text-md font-medium text-gray-700 dark:text-gray-300">
                 {parentPath}
               </h4>
             )}
@@ -91,15 +92,77 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
 }
 
 function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: boolean }) {
+  // ダークモード状態をReactの状態として管理
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    // 初期値の設定: ローカルストレージまたはHTML要素のクラスから取得
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') return true;
+    if (storedTheme === 'light') return false;
+    return document.documentElement.classList.contains('dark');
+  });
+
+  // ダークモードの変更を監視
+  useEffect(() => {
+    const handleThemeChange = () => {
+      // LocalStorageの値またはHTML要素のクラスを確認
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'dark') {
+        setIsDarkMode(true);
+      } else if (storedTheme === 'light') {
+        setIsDarkMode(false);
+      } else {
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+      }
+    };
+
+    // 初期設定
+    handleThemeChange();
+
+    // MutationObserverを使用してHTMLのクラス変更を監視
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          handleThemeChange();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    // ローカルストレージの変更を監視
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === 'theme') {
+        handleThemeChange();
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+
+    // クリーンアップ
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('storage', storageHandler);
+    };
+  }, []);
+
   if (token.type === 'color') {
     const color = token.value as string;
     const isLight = isLightColor(color);
-    const textColor = isLight ? '#000000' : '#FFFFFF';
     const variant = token.path[token.path.length - 1];
     const isLightVariant = variant === 'light' || variant === 'lighter';
 
-    // サンプルテキスト「Aa」の色に基づいたコントラスト比を計算
+    // 現在のテーマの背景色
+    const backgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
+
+    // ① カラートークンがテキストとして使用される場合のコントラスト比
+    const contrastWithBackground = calculateContrastRatio(color, backgroundColor);
+
+    // ② カラートークンが背景として使用される場合に適切なテキスト色
+    const textColor = isLight ? '#000000' : '#FFFFFF';
+
+    // ③ サンプル「Aa」の色 - バリアント名に基づく（こちらは既存の挙動を維持）
     const textColorForSample = isLightVariant ? '#000000' : '#FFFFFF';
+
+    // ④ サンプル「Aa」とその背景（カラートークン）のコントラスト
     const contrastWithSampleText = calculateContrastRatio(color, textColorForSample);
 
     return (
@@ -117,9 +180,13 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
             </div>
           )}
 
-          {/* コントラスト比はコンパクトモードでも表示する */}
+          {/* コントラスト比表示 - 実際に表示されている組み合わせを使用 */}
           <div className={`absolute bottom-1 right-1 text-xs ${isCompact ? 'bg-black/80 text-white px-1 py-0' : 'bg-black/70 dark:bg-white/70 text-white dark:text-black px-1.5 py-0.5'} rounded`}>
-            {(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1
+            <span title={`現在のテーマ背景色との対比: ${contrastWithBackground.toFixed(2)}:1`}>
+              {isCompact
+                ? `${(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1`
+                : `${(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1`}
+            </span>
           </div>
         </div>
 
@@ -151,7 +218,6 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
 
   if (token.type === 'typography') {
     const typographyValue = token.value as Record<string, string | number | undefined>;
-    // サンプルテキスト選択のバリエーションを増やす
     const sampleTexts = {
       short: 'Aa',
       pangram: 'The quick brown fox jumps over the lazy dog',
@@ -159,49 +225,52 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
       japanese: 'こんにちは世界'
     };
 
-    // 選択できるサンプルテキスト（Compact時は短いものを使用）
     const sampleText = isCompact ? sampleTexts.short : sampleTexts.alphabet;
-
-    // フォントサイズに応じてコンテナの高さを動的に調整
     const fontSizeRaw = typographyValue.fontSize;
     const fontSizeValue = typeof fontSizeRaw === 'number' ? fontSizeRaw : parseInt(fontSizeRaw || '16', 10);
     const containerHeight = isCompact ? 'h-12' : `min-h-[${Math.min(Math.max(fontSizeValue * 2, 20), 48)}px]`;
 
+    // ダークモードに基づいて動的に背景色とテキスト色を設定
+    const bgColor = isDarkMode ? '#1E1E1E' : '#F9FAFB'; // dark:bg-gray-900 : bg-gray-50
+    const textColor = isDarkMode ? '#FFFFFF' : '#111827'; // dark:text-white : text-gray-900
+
     return (
       <div className="space-y-2">
         <div
-          className={`w-full flex items-center justify-center bg-gray-50 dark:text-white  dark:bg-gray-900 rounded-md overflow-hidden relative ${containerHeight}`}
+          className={`w-full flex items-center justify-center rounded-md overflow-hidden relative ${containerHeight}`}
           style={{
             fontFamily: `"${typographyValue.fontFamily}", sans-serif`,
             fontSize: `${fontSizeValue}px`,
             fontWeight: typographyValue.fontWeight,
             lineHeight: typographyValue.lineHeight ? `${typographyValue.lineHeight}px` : 'normal',
             letterSpacing: typographyValue.letterSpacing ? `${typographyValue.letterSpacing}px` : 'normal',
+            backgroundColor: bgColor,
+            color: textColor
           }}
         >
           <span>{sampleText}</span>
-          <div className="absolute bottom-1 right-1 text-xs bg-blue-500/90 text-white dark:text-blue-300 px-1 py-0.5 rounded">
+          <div className="absolute bottom-1 right-1 text-xs bg-blue-500/90 text-white px-1 py-0.5 rounded">
             {fontSizeValue}px
           </div>
         </div>
         {!isCompact && (
           <div className="space-y-1 text-xs mt-2">
             <div className="flex justify-between">
-              <span className="text-gray-500">Font</span>
-              <span className="font-medium truncate">{typographyValue.fontFamily}</span>
+              <span className="text-gray-400">Font</span>
+              <span className="text-gray-600 dark:text-gray-300 font-medium truncate">{typographyValue.fontFamily}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Size</span>
-              <span className="font-medium">{fontSizeValue}px</span>
+              <span className="text-gray-400">Size</span>
+              <span className="text-gray-600 dark:text-gray-300 font-medium">{fontSizeValue}px</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Weight</span>
-              <span className="font-medium">{typographyValue.fontWeight}</span>
+              <span className="text-gray-400">Weight</span>
+              <span className="text-gray-600 dark:text-gray-300 font-medium">{typographyValue.fontWeight}</span>
             </div>
             {typographyValue.lineHeight && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Line Height</span>
-                <span className="font-medium">{typographyValue.lineHeight}px</span>
+                <span className="text-gray-400">Line Height</span>
+                <span className="text-gray-600 dark:text-gray-300 font-medium">{typographyValue.lineHeight}px</span>
               </div>
             )}
             {/* {typographyValue.letterSpacing && (
