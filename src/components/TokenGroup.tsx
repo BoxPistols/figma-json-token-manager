@@ -108,18 +108,19 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
           className={`relative rounded-md overflow-hidden ${isCompact ? 'h-12' : 'h-24'}`}
           style={{ backgroundColor: color }}
         >
+          {/* Aaテキストはコンパクトモードでは表示しない */}
           {!isCompact && (
-            <>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span style={{ color: textColorForSample }} className="text-2xl font-medium">
-                  Aa
-                </span>
-              </div>
-              <div className="absolute bottom-1 right-1 text-xs bg-black/70 dark:bg-white/70 text-white dark:text-black px-1.5 py-0.5 rounded">
-                {(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1
-              </div>
-            </>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span style={{ color: textColorForSample }} className="text-2xl font-medium">
+                Aa
+              </span>
+            </div>
           )}
+
+          {/* コントラスト比はコンパクトモードでも表示する */}
+          <div className={`absolute bottom-1 right-1 text-xs ${isCompact ? 'bg-black/80 text-white px-1 py-0' : 'bg-black/70 dark:bg-white/70 text-white dark:text-black px-1.5 py-0.5'} rounded`}>
+            {(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1
+          </div>
         </div>
 
         {!isCompact && (
