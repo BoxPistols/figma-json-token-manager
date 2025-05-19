@@ -93,12 +93,14 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
 function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: boolean }) {
   if (token.type === 'color') {
     const color = token.value as string;
-    const contrastWithWhite = calculateContrastRatio(color, '#FFFFFF');
-    const contrastWithBlack = calculateContrastRatio(color, '#000000');
     const isLight = isLightColor(color);
     const textColor = isLight ? '#000000' : '#FFFFFF';
     const variant = token.path[token.path.length - 1];
     const isLightVariant = variant === 'light' || variant === 'lighter';
+
+    // サンプルテキスト「Aa」の色に基づいたコントラスト比を計算
+    const textColorForSample = isLightVariant ? '#000000' : '#FFFFFF';
+    const contrastWithSampleText = calculateContrastRatio(color, textColorForSample);
 
     return (
       <div className="space-y-2">
@@ -109,12 +111,12 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
           {!isCompact && (
             <>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span style={{ color: isLightVariant ? '#000000' : '#FFFFFF' }} className="text-2xl font-medium">
+                <span style={{ color: textColorForSample }} className="text-2xl font-medium">
                   Aa
                 </span>
               </div>
-              <div className="absolute bottom-1 right-1 text-xs bg-black/50 text-white px-1.5 py-0.5 rounded">
-                {Math.round(Math.max(contrastWithWhite, contrastWithBlack) * 10) / 10}:1
+              <div className="absolute bottom-1 right-1 text-xs bg-black/70 dark:bg-white/70 text-white dark:text-black px-1.5 py-0.5 rounded">
+                {(Math.floor(contrastWithSampleText * 100) / 100).toFixed(2)}:1
               </div>
             </>
           )}
