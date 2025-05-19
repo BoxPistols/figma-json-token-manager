@@ -1,7 +1,9 @@
 {
-  "name": "vite-react-typescript-starter",
-  "private": true,
-  "version": "0.0.0",
+  "name": "json-token-manager",
+  "description": "A simple JSON token manager for managing tokens in a JSON file.",
+  "author": "boxpistols",
+  "private": false,
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

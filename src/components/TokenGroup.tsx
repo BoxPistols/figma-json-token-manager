@@ -1,4 +1,3 @@
-import React from 'react';
 import { FlattenedToken } from '../types';
 import { calculateContrastRatio, isLightColor } from '../utils/colorUtils';
 
@@ -31,10 +30,10 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
       const variants = ['main', 'dark', 'light', 'lighter'];
       const aVariant = a.path[a.path.length - 1];
       const bVariant = b.path[b.path.length - 1];
-      
+
       const aIndex = variants.indexOf(aVariant);
       const bIndex = variants.indexOf(bVariant);
-      
+
       if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
       return a.path[a.path.length - 1].localeCompare(b.path[b.path.length - 1]);
     });
@@ -48,7 +47,7 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
           ({tokens.length})
         </span>
       </h3>
-      
+
       <div className="space-y-6">
         {Object.entries(groupedTokens).map(([parentPath, groupTokens]) => (
           <div key={parentPath} className="space-y-2">
@@ -103,8 +102,8 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
 
     return (
       <div className="space-y-2">
-        <div 
-          className={`relative rounded-md overflow-hidden ${isCompact ? 'h-12' : 'h-24'}`} 
+        <div
+          className={`relative rounded-md overflow-hidden ${isCompact ? 'h-12' : 'h-24'}`}
           style={{ backgroundColor: color }}
         >
           {!isCompact && (
@@ -120,21 +119,21 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
             </>
           )}
         </div>
-        
+
         {!isCompact && (
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500 dark:text-gray-400">HEX</span>
-              <span className="font-mono">{color.toUpperCase()}</span>
+              <span className="font-mono text-gray-500 dark:text-gray-400">{color.toUpperCase()}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div 
+              <div
                 className="flex-1 h-8 rounded flex items-center justify-center text-sm"
                 style={{ backgroundColor: color, color: textColor }}
               >
                 Text
               </div>
-              <div 
+              <div
                 className="flex-1 h-8 rounded flex items-center justify-center text-sm border"
                 style={{ color, backgroundColor: 'transparent' }}
               >
@@ -148,35 +147,66 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
   }
 
   if (token.type === 'typography') {
-    const typographyValue = token.value as Record<string, any>;
+    const typographyValue = token.value as Record<string, string | number | undefined>;
+    // サンプルテキスト選択のバリエーションを増やす
+    const sampleTexts = {
+      short: 'Aa',
+      pangram: 'The quick brown fox jumps over the lazy dog',
+      alphabet: 'AaBbCcDdEeFfGg',
+      japanese: 'こんにちは世界'
+    };
+
+    // 選択できるサンプルテキスト（Compact時は短いものを使用）
+    const sampleText = isCompact ? sampleTexts.short : sampleTexts.alphabet;
+
+    // フォントサイズに応じてコンテナの高さを動的に調整
+    const fontSizeRaw = typographyValue.fontSize;
+    const fontSizeValue = typeof fontSizeRaw === 'number' ? fontSizeRaw : parseInt(fontSizeRaw || '16', 10);
+    const containerHeight = isCompact ? 'h-12' : `min-h-[${Math.min(Math.max(fontSizeValue * 2, 20), 48)}px]`;
+
     return (
       <div className="space-y-2">
         <div
-          className={`w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-md overflow-hidden ${isCompact ? 'h-12' : 'h-20'}`}
+          className={`w-full flex items-center justify-center bg-gray-50 dark:text-white  dark:bg-gray-900 rounded-md overflow-hidden relative ${containerHeight}`}
           style={{
-            fontFamily: typographyValue.fontFamily,
-            fontSize: typographyValue.fontSize,
+            fontFamily: `"${typographyValue.fontFamily}", sans-serif`,
+            fontSize: `${fontSizeValue}px`,
             fontWeight: typographyValue.fontWeight,
-            lineHeight: typographyValue.lineHeight,
-            letterSpacing: typographyValue.letterSpacing,
+            lineHeight: typographyValue.lineHeight ? `${typographyValue.lineHeight}px` : 'normal',
+            letterSpacing: typographyValue.letterSpacing ? `${typographyValue.letterSpacing}px` : 'normal',
           }}
         >
-          Aa
+          <span>{sampleText}</span>
+          <div className="absolute bottom-1 right-1 text-xs bg-blue-500/90 text-white dark:text-blue-300 px-1 py-0.5 rounded">
+            {fontSizeValue}px
+          </div>
         </div>
         {!isCompact && (
-          <div className="space-y-1 text-xs">
+          <div className="space-y-1 text-xs mt-2">
             <div className="flex justify-between">
               <span className="text-gray-500">Font</span>
               <span className="font-medium truncate">{typographyValue.fontFamily}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Size</span>
-              <span className="font-medium">{typographyValue.fontSize}</span>
+              <span className="font-medium">{fontSizeValue}px</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Weight</span>
               <span className="font-medium">{typographyValue.fontWeight}</span>
             </div>
+            {typographyValue.lineHeight && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Line Height</span>
+                <span className="font-medium">{typographyValue.lineHeight}px</span>
+              </div>
+            )}
+            {/* {typographyValue.letterSpacing && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Letter Spacing</span>
+                <span className="font-medium">{typographyValue.letterSpacing}px</span>
+              </div>
+            )} */}
           </div>
         )}
       </div>
@@ -186,7 +216,7 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
   return (
     <div className={`w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-md ${isCompact ? 'h-12' : 'h-20'}`}>
       <span className="text-sm text-gray-400">
-        {typeof token.value === 'object' 
+        {typeof token.value === 'object'
           ? JSON.stringify(token.value, null, 2)
           : String(token.value)
         }

@@ -11,16 +11,43 @@ function App() {
     const stored = localStorage.getItem('darkMode');
     return stored ? JSON.parse(stored) : true;
   });
-  
+
   const [tokens, setTokens] = useState<TokenData>(() => {
     return loadTokensFromStorage() || {};
   });
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedToken, setSelectedToken] = useState<FlattenedToken | null>(null);
   const [error, setError] = useState<ImportError | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isCompactMode, setIsCompactMode] = useState(false);
+
+  // フォントファミリーの動的読み込み用の副作用を追加
+  useEffect(() => {
+    if (!tokens) return;
+
+    const flattenedTokens = flattenTokens(tokens);
+    const fontFamilies = new Set<string>();
+
+    flattenedTokens.forEach(token => {
+      if (token.type === 'typography' && typeof token.value === 'object') {
+        const typographyValue = token.value as Record<string, unknown>;
+        if (typeof typographyValue.fontFamily === 'string') {
+          fontFamilies.add(typographyValue.fontFamily);
+        }
+      }
+    });
+
+    if (fontFamilies.size > 0) {
+      const fontFamiliesList = Array.from(fontFamilies)
+        .map(f => f.replace(/ /g, '+'))
+        .join('|');
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamiliesList)}&display=swap`;
+      document.head.appendChild(link);
+    }
+  }, [tokens]);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -45,16 +72,16 @@ function App() {
         try {
           const data = JSON.parse(e.target?.result as string);
           const validationError = validateToken(data);
-          
+
           if (validationError) {
             setError({ message: validationError });
             return;
           }
-          
+
           setTokens(data);
           setError(null);
         } catch (err) {
-          setError({ message: 'Error parsing JSON file' });
+          setError({ message: `Error parsing JSON file: ${err instanceof Error ? err.message : String(err)}` });
         }
       };
       reader.readAsText(file);
@@ -75,6 +102,7 @@ function App() {
   const flattenedTokens = React.useMemo(() => {
     try {
       return flattenTokens(tokens);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       return [];
     }
@@ -86,10 +114,10 @@ function App() {
 
   const filteredTokens = React.useMemo(() => {
     if (!searchQuery) return groupedTokens;
-    
+
     const filtered: Record<string, FlattenedToken[]> = {};
     Object.entries(groupedTokens).forEach(([type, tokens]) => {
-      filtered[type] = tokens.filter(token => 
+      filtered[type] = tokens.filter(token =>
         token.path.join('/').toLowerCase().includes(searchQuery.toLowerCase()) ||
         token.value.toString().toLowerCase().includes(searchQuery.toLowerCase())
       );

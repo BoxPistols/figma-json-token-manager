@@ -1,7 +1,7 @@
 {
-  "name": "Design Token Studio",
-  "id": "design-token-studio",
-  "api": "1.0.0",
+  "name": "Json Token Viewer",
+  "id": "json-token-viewer",
+  "api": "1.0.1",
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["figma"],
