@@ -1,0 +1,25 @@
+{
+  "name": "Design Token Studio",
+  "id": "design-token-studio",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "menu": [
+    {
+      "name": "Import Tokens",
+      "command": "import-tokens"
+    },
+    {
+      "name": "Export Tokens",
+      "command": "export-tokens"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "About",
+      "command": "about"
+    }
+  ]
+}

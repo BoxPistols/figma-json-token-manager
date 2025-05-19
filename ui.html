@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Token Studio</title>
+  <link rel="stylesheet" href="./ui-src/style.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // This is necessary to access the Figma plugin API
+    window.onmessage = (event) => {
+      const message = event.data.pluginMessage;
+      if (message) {
+        window.dispatchPluginMessage(message);
+      }
+    };
+  </script>
+  <script src="./ui-src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+figma-json-token-manager
