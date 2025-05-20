@@ -12,35 +12,46 @@ export interface DesignToken {
   $description?: string;
 }
 
+// カラートークン定義
 export interface ColorToken {
   name: string;
   value: string;
   role?: string;
 }
 
+// タイポグラフィトークン定義
+export interface TypographyToken {
+  name: string;
+  fontFamily?: string;
+  fontSize?: string | number;
+  fontWeight?: number;
+  lineHeight?: string | number;
+  letterSpacing?: string | number;
+  textTransform?: string;
+  textDecoration?: string;
+  description?: string;
+}
+
+// カラーバリエーション定義
 export interface ColorVariation {
   main: string;
   dark: string;
   light: string;
   lighter: string;
+  [key: string]: string; // インデックスシグネチャを追加
 }
 
+// カラーバリエーションの集合
 export interface ColorVariations {
-  [key: string]: ColorVariation;
+  [colorName: string]: ColorVariation;
 }
 
-export interface TextColorSettings {
-  main: string;
-  dark: string;
-  light: string;
-  lighter: string;
-}
-
+// トークンデータ構造
 export interface TokenData {
-  [key: string]: any;
-  colors?: ColorToken[];
-  variations?: ColorVariations;
-  textColorSettings?: TextColorSettings;
+  colors: ColorToken[];
+  variations: ColorVariations;
+  typography: TypographyToken[];
+  [key: string]: any; // その他のプロパティを許可
 }
 
 export interface FlattenedToken {

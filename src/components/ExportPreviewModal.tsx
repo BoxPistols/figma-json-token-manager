@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ExportPreviewModalProps } from '../types';
 import { isArrayFormat, convertToArrayFormat, convertToStandardFormat } from '../utils/tokenConverter';
 
