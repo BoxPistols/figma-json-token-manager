@@ -45,14 +45,16 @@ async function processToken(name: string, token: DesignToken) {
     style.name = name;
     const color = hexToRgb(token.$value as string);
     if (color) {
-      style.paints = [{
-        type: 'SOLID',
-        color: {
-          r: color.r / 255,
-          g: color.g / 255,
-          b: color.b / 255
-        }
-      }];
+      style.paints = [
+        {
+          type: 'SOLID',
+          color: {
+            r: color.r / 255,
+            g: color.g / 255,
+            b: color.b / 255,
+          },
+        },
+      ];
     }
   }
 }
@@ -70,19 +72,23 @@ async function applyToken(token: FlattenedToken) {
 
       for (const node of figma.currentPage.selection) {
         if ('fills' in node) {
-          node.fills = [{
-            type: 'SOLID',
-            color: {
-              r: color.r / 255,
-              g: color.g / 255,
-              b: color.b / 255
-            }
-          }];
+          node.fills = [
+            {
+              type: 'SOLID',
+              color: {
+                r: color.r / 255,
+                g: color.g / 255,
+                b: color.b / 255,
+              },
+            },
+          ];
         }
       }
     }
-    
-    figma.notify(`Applied ${token.path.join('.')} to ${figma.currentPage.selection.length} layers`);
+
+    figma.notify(
+      `Applied ${token.path.join('.')} to ${figma.currentPage.selection.length} layers`
+    );
   } catch (error) {
     console.error('Error applying token:', error);
     figma.notify('Error applying token', { error: true });
@@ -91,9 +97,11 @@ async function applyToken(token: FlattenedToken) {
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 }

@@ -7,7 +7,17 @@ export interface TokenGroup {
 }
 
 export interface DesignToken {
-  $type: 'color' | 'typography' | 'spacing' | 'size' | 'opacity' | 'borderRadius' | 'borderColor' | 'shadow' | 'breakpoint' | 'icon';
+  $type:
+    | 'color'
+    | 'typography'
+    | 'spacing'
+    | 'size'
+    | 'opacity'
+    | 'borderRadius'
+    | 'borderColor'
+    | 'shadow'
+    | 'breakpoint'
+    | 'icon';
   $value: string | number | Record<string, unknown>;
   $description?: string;
 }

@@ -2,7 +2,7 @@
 
 export function renderHome(state) {
   const { history } = state;
-  
+
   return `
     <div class="home-container">
       <div class="hero-section">
@@ -97,18 +97,23 @@ function renderHistory(history) {
       </div>
     `;
   }
-  
+
   return `
     <div class="history-section">
       <h2>Recent Activity</h2>
       <div class="history-list">
-        ${history.slice(0, 5).map(item => `
+        ${history
+          .slice(0, 5)
+          .map(
+            (item) => `
           <div class="history-item" data-id="${item.id}">
             <div class="history-icon ${item.type === 'import' ? 'import-icon' : 'export-icon'}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                ${item.type === 'import' 
-                  ? '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>'
-                  : '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'}
+                ${
+                  item.type === 'import'
+                    ? '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>'
+                    : '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
+                }
               </svg>
             </div>
             <div class="history-details">
@@ -124,7 +129,9 @@ function renderHistory(history) {
               </svg>
             </div>
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
     </div>
   `;
@@ -137,7 +144,7 @@ function formatDate(date) {
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
-  
+
   if (diffDay > 0) {
     return diffDay === 1 ? 'Yesterday' : `${diffDay} days ago`;
   } else if (diffHour > 0) {

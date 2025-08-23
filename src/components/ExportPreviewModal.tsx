@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { ExportPreviewModalProps } from '../types';
-import { isArrayFormat, convertToArrayFormat, convertToStandardFormat } from '../utils/tokenConverter';
+import {
+  isArrayFormat,
+  convertToArrayFormat,
+  convertToStandardFormat,
+} from '../utils/tokenConverter';
 
-export function ExportPreviewModal({ isOpen, onClose, tokens }: ExportPreviewModalProps) {
-  const [format, setFormat] = useState<'array' | 'standard'>(isArrayFormat(tokens) ? 'array' : 'standard');
-  
+export function ExportPreviewModal({
+  isOpen,
+  onClose,
+  tokens,
+}: ExportPreviewModalProps) {
+  const [format, setFormat] = useState<'array' | 'standard'>(
+    isArrayFormat(tokens) ? 'array' : 'standard'
+  );
+
   if (!isOpen) return null;
 
   const getFormattedTokens = () => {
@@ -21,11 +31,15 @@ export function ExportPreviewModal({ isOpen, onClose, tokens }: ExportPreviewMod
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-3xl max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Export Preview</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Export Preview
+          </h2>
           <div className="flex items-center space-x-4">
             <select
               value={format}
-              onChange={(e) => setFormat(e.target.value as 'array' | 'standard')}
+              onChange={(e) =>
+                setFormat(e.target.value as 'array' | 'standard')
+              }
               className="bg-gray-100 dark:bg-gray-700 border-0 rounded-md px-3 py-1 text-sm"
             >
               <option value="array">Array Format</option>
@@ -36,19 +50,31 @@ export function ExportPreviewModal({ isOpen, onClose, tokens }: ExportPreviewMod
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <span className="sr-only">Close</span>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
-        
+
         <div className="p-4 overflow-auto max-h-[60vh]">
           <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto">
-            <code className="text-sm text-gray-800 dark:text-gray-200">{formattedJson}</code>
+            <code className="text-sm text-gray-800 dark:text-gray-200">
+              {formattedJson}
+            </code>
           </pre>
         </div>
-        
+
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-4">
           <button
             onClick={onClose}
@@ -58,7 +84,9 @@ export function ExportPreviewModal({ isOpen, onClose, tokens }: ExportPreviewMod
           </button>
           <button
             onClick={() => {
-              const blob = new Blob([formattedJson], { type: 'application/json' });
+              const blob = new Blob([formattedJson], {
+                type: 'application/json',
+              });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;

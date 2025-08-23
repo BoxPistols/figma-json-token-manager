@@ -6,7 +6,7 @@ import {
   Token,
   ColorVariations,
   TokenGroup,
-} from "../types";
+} from '../types';
 
 export function convertToStandardFormat(data: TokenData): TokenSet {
   const standardFormat: TokenSet = {};
@@ -15,7 +15,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.colors)) {
     data.colors.forEach((color) => {
       standardFormat[color.name] = {
-        $type: "color",
+        $type: 'color',
         $value: color.value,
         $description: color.role,
       };
@@ -30,7 +30,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
         // 既に存在するトークンの場合は上書きしない（colors配列が優先）
         if (!standardFormat[tokenKey]) {
           standardFormat[tokenKey] = {
-            $type: "color",
+            $type: 'color',
             $value: value,
             $description: `${name} ${shade}`,
           };
@@ -43,7 +43,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.typography)) {
     data.typography.forEach((typo) => {
       standardFormat[typo.name] = {
-        $type: "typography",
+        $type: 'typography',
         $value: {
           fontFamily: typo.fontFamily,
           fontSize: typo.fontSize,
@@ -62,7 +62,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.spacing)) {
     data.spacing.forEach((space) => {
       standardFormat[space.name] = {
-        $type: "spacing",
+        $type: 'spacing',
         $value: space.value,
         $description: space.role,
       };
@@ -73,7 +73,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.size)) {
     data.size.forEach((size) => {
       standardFormat[size.name] = {
-        $type: "size",
+        $type: 'size',
         $value: size.value,
         $description: size.role,
       };
@@ -84,7 +84,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.opacity)) {
     data.opacity.forEach((opacity) => {
       standardFormat[opacity.name] = {
-        $type: "opacity",
+        $type: 'opacity',
         $value: opacity.value,
         $description: opacity.role,
       };
@@ -95,7 +95,7 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   if (Array.isArray(data.borderRadius)) {
     data.borderRadius.forEach((radius) => {
       standardFormat[radius.name] = {
-        $type: "borderRadius",
+        $type: 'borderRadius',
         $value: radius.value,
         $description: radius.role,
       };
@@ -106,13 +106,14 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
 }
 
 export function isArrayFormat(data: unknown): boolean {
-  if (data === null || typeof data !== "object") {
+  if (data === null || typeof data !== 'object') {
     return false;
   }
-  
+
   const tokenData = data as TokenData;
-  
-  return (
+
+  // Check for array format (our current mockTokens format)
+  const hasArrayFormat =
     Array.isArray(tokenData.colors) ||
     Array.isArray(tokenData.typography) ||
     Array.isArray(tokenData.spacing) ||
@@ -122,8 +123,44 @@ export function isArrayFormat(data: unknown): boolean {
     Array.isArray(tokenData.borderColor) ||
     Array.isArray(tokenData.shadow) ||
     Array.isArray(tokenData.breakpoint) ||
-    Array.isArray(tokenData.icon)
+    Array.isArray(tokenData.icon);
+
+  // If it has array format, return true
+  if (hasArrayFormat) {
+    return true;
+  }
+
+  // Check if it's W3C format by looking for $type/$value patterns
+  // If no direct tokens found at root level, it's likely W3C nested format
+  const hasW3CTokens = Object.values(tokenData).some(
+    (value) =>
+      typeof value === 'object' &&
+      value !== null &&
+      ('$type' in value || '$value' in value)
   );
+
+  // If it has W3C tokens at root level, it's not array format
+  if (hasW3CTokens) {
+    return false;
+  }
+
+  // Check for nested W3C format (like Figma Design Tokens Manager)
+  const hasNestedW3CTokens = Object.values(tokenData).some((value) => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      return false;
+    }
+
+    // Check if any nested object contains $type/$value
+    return Object.values(value).some(
+      (nestedValue) =>
+        typeof nestedValue === 'object' &&
+        nestedValue !== null &&
+        ('$type' in nestedValue || '$value' in nestedValue)
+    );
+  });
+
+  // If it has nested W3C tokens, it's not array format
+  return !hasNestedW3CTokens;
 }
 
 // ネストされたTokenSetをフラットなTokenSetに変換する関数を追加
@@ -136,9 +173,9 @@ export function flattenTokenSet(
   Object.entries(data).forEach(([key, value]) => {
     const currentPath = [...parentPath, key];
 
-    if ("$type" in value) {
+    if ('$type' in value) {
       // DesignTokenの場合はパスをスラッシュ区切りにしてセット
-      result[currentPath.join("/")] = value;
+      result[currentPath.join('/')] = value;
     } else {
       // TokenGroupの場合は再帰的に処理
       const nested = flattenTokenSet(value as TokenGroup, currentPath);
@@ -166,8 +203,8 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
   Object.entries(flatData).forEach(([path, tokenOrGroup]) => {
     const token = tokenOrGroup as DesignToken;
 
-    if (token.$type === "color") {
-      const pathParts = path.split("/");
+    if (token.$type === 'color') {
+      const pathParts = path.split('/');
 
       if (pathParts.length === 1) {
         arrayFormat.colors!.push({
@@ -181,15 +218,15 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
 
         if (!arrayFormat.variations![colorName]) {
           arrayFormat.variations![colorName] = {
-            main: "",
-            dark: "",
-            light: "",
-            lighter: "",
+            main: '',
+            dark: '',
+            light: '',
+            lighter: '',
           };
         }
 
-        if (typeof token.$value === "string") {
-          const shadeParts = shade.split("/");
+        if (typeof token.$value === 'string') {
+          const shadeParts = shade.split('/');
           let currentLevel: Record<string, unknown> =
             arrayFormat.variations![colorName];
 
@@ -204,12 +241,12 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
           currentLevel[shadeParts[shadeParts.length - 1]] = token.$value;
         }
       }
-    } else if (token.$type === "typography") {
-      const pathParts = path.split("/");
-      const name = pathParts.join("-");
+    } else if (token.$type === 'typography') {
+      const pathParts = path.split('/');
+      const name = pathParts.join('-');
 
       const typographyValue =
-        typeof token.$value === "object"
+        typeof token.$value === 'object'
           ? (token.$value as Record<string, unknown>)
           : {};
 
@@ -218,25 +255,25 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
         ...typographyValue,
         description: token.$description,
       } as Token);
-    } else if (token.$type === "spacing") {
+    } else if (token.$type === 'spacing') {
       arrayFormat.spacing!.push({
         name: path,
         value: token.$value,
         role: token.$description,
       });
-    } else if (token.$type === "size") {
+    } else if (token.$type === 'size') {
       arrayFormat.size!.push({
         name: path,
         value: token.$value,
         role: token.$description,
       });
-    } else if (token.$type === "opacity") {
+    } else if (token.$type === 'opacity') {
       arrayFormat.opacity!.push({
         name: path,
         value: token.$value,
         role: token.$description,
       });
-    } else if (token.$type === "borderRadius") {
+    } else if (token.$type === 'borderRadius') {
       arrayFormat.borderRadius!.push({
         name: path,
         value: token.$value,

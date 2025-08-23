@@ -8,6 +8,11 @@ interface BulkDeleteModeProps {
   onCancel: () => void;
 }
 
+interface TypographyValue {
+  fontSize: string | number;
+  fontFamily: string;
+}
+
 export function BulkDeleteMode({
   groupedTokens,
   onBulkDelete,
@@ -16,9 +21,7 @@ export function BulkDeleteMode({
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set());
 
   // Flatten all tokens for bulk selection
-  const allTokens = Object.entries(groupedTokens).flatMap(([type, tokens]) =>
-    tokens.map(token => ({ ...token, type }))
-  );
+  const allTokens = Object.values(groupedTokens).flat();
 
   const toggleToken = (tokenPath: string) => {
     const newSelected = new Set(selectedTokens);
@@ -34,12 +37,14 @@ export function BulkDeleteMode({
     if (selectedTokens.size === allTokens.length) {
       setSelectedTokens(new Set());
     } else {
-      setSelectedTokens(new Set(allTokens.map(token => token.path.join('/'))));
+      setSelectedTokens(
+        new Set(allTokens.map((token) => token.path.join('/')))
+      );
     }
   };
 
   const handleBulkDelete = () => {
-    const tokensToDelete = allTokens.filter(token => 
+    const tokensToDelete = allTokens.filter((token) =>
       selectedTokens.has(token.path.join('/'))
     );
     onBulkDelete(tokensToDelete);
@@ -48,17 +53,27 @@ export function BulkDeleteMode({
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      typography: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      spacing: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+      typography:
+        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      spacing:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
       size: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-      opacity: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-      borderRadius: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-      borderColor: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-      shadow: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
-      breakpoint: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
+      opacity:
+        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      borderRadius:
+        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+      borderColor:
+        'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+      shadow:
+        'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
+      breakpoint:
+        'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
       icon: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
     };
-    return colors[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    return (
+      colors[type] ||
+      'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+    );
   };
 
   return (
@@ -73,7 +88,8 @@ export function BulkDeleteMode({
               </span>
             </div>
             <div className="text-sm text-orange-600 dark:text-orange-400">
-              削除するトークンを選択してください ({selectedTokens.size} 個選択中)
+              削除するトークンを選択してください ({selectedTokens.size}{' '}
+              個選択中)
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -112,7 +128,7 @@ export function BulkDeleteMode({
 
       <div className="p-4">
         <div className="grid gap-2">
-          {Object.entries(groupedTokens).map(([type, tokens]) =>
+          {Object.entries(groupedTokens).map(([, tokens]) =>
             tokens.map((token, index) => (
               <div
                 key={`${token.path.join('-')}-${index}`}
@@ -129,11 +145,13 @@ export function BulkDeleteMode({
                   ) : (
                     <Square className="w-5 h-5 text-gray-400" />
                   )}
-                  
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(token.type)}`}>
+
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(token.type)}`}
+                  >
                     {token.type}
                   </span>
-                  
+
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {token.path[token.path.length - 1]}
@@ -142,7 +160,7 @@ export function BulkDeleteMode({
                       {token.path.join(' / ')}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 text-sm">
                     {token.type === 'color' && (
                       <div
@@ -151,10 +169,10 @@ export function BulkDeleteMode({
                       />
                     )}
                     <span className="font-mono text-gray-600 dark:text-gray-300 max-w-xs truncate">
-                      {typeof token.value === 'object' 
-                        ? (token.type === 'typography' 
-                            ? `${(token.value as any).fontSize}px ${(token.value as any).fontFamily}`
-                            : JSON.stringify(token.value))
+                      {typeof token.value === 'object'
+                        ? token.type === 'typography'
+                          ? `${(token.value as TypographyValue).fontSize}px ${(token.value as TypographyValue).fontFamily}`
+                          : JSON.stringify(token.value)
                         : String(token.value)}
                     </span>
                     {token.role && (

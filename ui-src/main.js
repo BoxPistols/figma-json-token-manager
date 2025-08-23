@@ -9,12 +9,12 @@ const state = createState({
   tokens: {
     colors: {},
     typography: {},
-    spacing: {}
+    spacing: {},
   },
   selectedCategory: null,
   selectedToken: null,
   history: [],
-  searchQuery: ''
+  searchQuery: '',
 });
 
 // Set up plugin message handling
@@ -25,9 +25,11 @@ const app = createApp(state);
 app.mount('#app');
 
 // Handle system theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  state.isDarkMode = e.matches;
-});
+window
+  .matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', (e) => {
+    state.isDarkMode = e.matches;
+  });
 
 // Listen for keyboard shortcuts
 document.addEventListener('keydown', (e) => {
@@ -36,13 +38,13 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     state.currentView = 'import';
   }
-  
+
   // Cmd/Ctrl + E for export
   if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
     e.preventDefault();
     state.currentView = 'export';
   }
-  
+
   // Escape to go home
   if (e.key === 'Escape' && state.currentView !== 'home') {
     state.currentView = 'home';

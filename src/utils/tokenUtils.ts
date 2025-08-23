@@ -1,19 +1,19 @@
 import { DesignToken, TokenGroup, FlattenedToken, TokenData } from '../types';
-import { convertToStandardFormat, isArrayFormat } from './tokenConverter';
+import { isArrayFormat } from './tokenConverter';
 
 export function flattenTokens(data: TokenData): FlattenedToken[] {
   const flattened: FlattenedToken[] = [];
-  
+
   // Check if it's array format first
   if (isArrayFormat(data)) {
     // Handle array format directly (colors, typography, spacing, etc.)
     Object.entries(data).forEach(([type, tokens]) => {
       if (Array.isArray(tokens)) {
-        tokens.forEach(token => {
+        tokens.forEach((token) => {
           // Split name to create path
           const path = token.name.split('/');
           let tokenValue = token.value;
-          
+
           // For typography tokens, create a complete value object
           if (type === 'typography') {
             tokenValue = {
@@ -24,53 +24,86 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
               lineHeight: token.lineHeight,
               letterSpacing: token.letterSpacing,
               textTransform: token.textTransform,
-              textDecoration: token.textDecoration
+              textDecoration: token.textDecoration,
             };
           }
-          
+
           const flattenedToken = {
             path,
-            type: type === 'colors' ? 'color' : 
-                  type === 'typography' ? 'typography' :
-                  type === 'spacing' ? 'spacing' :
-                  type === 'size' ? 'size' :
-                  type === 'opacity' ? 'opacity' :
-                  type === 'borderRadius' ? 'borderRadius' :
-                  type === 'borderColor' ? 'borderColor' :
-                  type === 'shadow' ? 'shadow' :
-                  type === 'breakpoint' ? 'breakpoint' :
-                  type === 'icon' ? 'icon' : type.slice(0, -1), // remove 's'
+            type:
+              type === 'colors'
+                ? 'color'
+                : type === 'typography'
+                  ? 'typography'
+                  : type === 'spacing'
+                    ? 'spacing'
+                    : type === 'size'
+                      ? 'size'
+                      : type === 'opacity'
+                        ? 'opacity'
+                        : type === 'borderRadius'
+                          ? 'borderRadius'
+                          : type === 'borderColor'
+                            ? 'borderColor'
+                            : type === 'shadow'
+                              ? 'shadow'
+                              : type === 'breakpoint'
+                                ? 'breakpoint'
+                                : type === 'icon'
+                                  ? 'icon'
+                                  : type.slice(0, -1), // remove 's'
             value: tokenValue,
             description: token.description,
-            role: token.role
+            role: token.role,
           };
           flattened.push(flattenedToken);
         });
       }
     });
   } else {
-    // Convert to standard format if it's W3C format
-    const standardFormat = convertToStandardFormat(data);
-    
+    // Handle W3C format directly (Figma Design Tokens Manager format)
     function processToken(path: string[], token: DesignToken | TokenGroup) {
       if ('$type' in token && '$value' in token) {
-        // Process typography values
+        // Keep typography values as objects for proper display
+        let processedValue = token.$value;
+
+        // For typography, ensure fontSize is numeric for proper display
         if (token.$type === 'typography' && typeof token.$value === 'object') {
-          const typographyValue = token.$value as Record<string, unknown>;
-          // Remove 'px' and '%' from values
-          Object.keys(typographyValue).forEach(key => {
-            if (typeof typographyValue[key] === 'string') {
-              typographyValue[key] = typographyValue[key].replace(/(px|%)/g, '');
+          const typographyValue = {
+            ...(token.$value as Record<string, unknown>),
+          };
+
+          // Convert fontSize from "16px" to 16 for consistent display
+          if (
+            typographyValue.fontSize &&
+            typeof typographyValue.fontSize === 'string'
+          ) {
+            const fontSize = typographyValue.fontSize.replace('px', '');
+            if (!isNaN(parseFloat(fontSize))) {
+              typographyValue.fontSize = parseFloat(fontSize);
             }
-          });
+          }
+
+          // Convert fontWeight to number if it's a string
+          if (
+            typographyValue.fontWeight &&
+            typeof typographyValue.fontWeight === 'string'
+          ) {
+            const weight = parseInt(typographyValue.fontWeight);
+            if (!isNaN(weight)) {
+              typographyValue.fontWeight = weight;
+            }
+          }
+
+          processedValue = typographyValue;
         }
 
         flattened.push({
           path,
           type: token.$type,
-          value: token.$value,
+          value: processedValue,
           description: token.$description,
-          role: undefined  // W3C標準では role は別フィールド
+          role: undefined, // W3C標準では role は別フィールド
         });
       } else {
         Object.entries(token).forEach(([key, value]) => {
@@ -79,7 +112,8 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
       }
     }
 
-    Object.entries(standardFormat).forEach(([key, value]) => {
+    // Process the data directly without conversion
+    Object.entries(data).forEach(([key, value]) => {
       processToken([key], value as DesignToken | TokenGroup);
     });
   }
@@ -93,12 +127,30 @@ export function validateToken(data: unknown): string | null {
     return 'Token data is empty';
   }
 
-  function validateNestedToken(token: unknown, path: string[] = []): string | null {
+  function validateNestedToken(
+    token: unknown,
+    path: string[] = []
+  ): string | null {
     if (!token) return null;
 
-    if (typeof token === 'object' && token !== null && '$type' in token && '$value' in token) {
+    if (
+      typeof token === 'object' &&
+      token !== null &&
+      '$type' in token &&
+      '$value' in token
+    ) {
       const designToken = token as DesignToken;
-      if (!['color', 'typography', 'spacing', 'size', 'opacity', 'borderRadius', 'dimension'].includes(designToken.$type)) {
+      if (
+        ![
+          'color',
+          'typography',
+          'spacing',
+          'size',
+          'opacity',
+          'borderRadius',
+          'dimension',
+        ].includes(designToken.$type)
+      ) {
         return `Invalid token type: ${designToken.$type} at ${path.join('.')}`;
       }
 
@@ -106,7 +158,7 @@ export function validateToken(data: unknown): string | null {
       if (designToken.$type === 'typography') {
         const requiredFields = ['fontFamily', 'fontSize', 'fontWeight'];
         const value = designToken.$value as Record<string, unknown>;
-        
+
         for (const field of requiredFields) {
           if (!(field in value)) {
             return `Missing required field '${field}' in typography token at ${path.join('.')}`;
@@ -130,10 +182,12 @@ export function validateToken(data: unknown): string | null {
   return validateNestedToken(data);
 }
 
-export function groupTokensByType(tokens: FlattenedToken[]): Record<string, FlattenedToken[]> {
+export function groupTokensByType(
+  tokens: FlattenedToken[]
+): Record<string, FlattenedToken[]> {
   const groups: Record<string, FlattenedToken[]> = {};
 
-  tokens.forEach(token => {
+  tokens.forEach((token) => {
     const type = token.type || 'other';
     if (!groups[type]) groups[type] = [];
     groups[type].push(token);
@@ -142,7 +196,7 @@ export function groupTokensByType(tokens: FlattenedToken[]): Record<string, Flat
   // Define logical order - BorderColor and Shadow go under Color family
   const logicalOrder = [
     'color',
-    'borderColor', 
+    'borderColor',
     'shadow',
     'typography',
     'spacing',
@@ -150,12 +204,12 @@ export function groupTokensByType(tokens: FlattenedToken[]): Record<string, Flat
     'opacity',
     'borderRadius',
     'breakpoint',
-    'icon'
+    'icon',
   ];
 
   // Sort groups by logical order
   const sortedGroups: Record<string, FlattenedToken[]> = {};
-  logicalOrder.forEach(type => {
+  logicalOrder.forEach((type) => {
     if (groups[type]) {
       sortedGroups[type] = groups[type];
     }

@@ -4,11 +4,23 @@ import { FlattenedToken } from '../types';
 
 interface TokenEditorProps {
   token: FlattenedToken;
-  onSave: (token: FlattenedToken, updates: { value?: string | number | object; role?: string; description?: string }) => void;
+  onSave: (
+    token: FlattenedToken,
+    updates: {
+      value?: string | number | object;
+      role?: string;
+      description?: string;
+    }
+  ) => void;
   onDelete?: (token: FlattenedToken) => void;
   isEditing: boolean;
   onStartEdit: () => void;
   onCancelEdit: () => void;
+}
+
+interface TypographyValue {
+  fontSize: string | number;
+  fontFamily: string;
 }
 
 export function TokenEditor({
@@ -22,19 +34,22 @@ export function TokenEditor({
   const [editValue, setEditValue] = useState<string>('');
   const [editRole, setEditRole] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
-  const [editMode, setEditMode] = useState<'value' | 'role' | 'description'>('value');
+  const [editMode, setEditMode] = useState<'value' | 'role' | 'description'>(
+    'value'
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (isEditing) {
       // typographyトークンの場合は編集用の文字列を生成
-      const displayValue = typeof token.value === 'object' 
-        ? (token.type === 'typography' 
-            ? `${(token.value as any).fontSize}px ${(token.value as any).fontFamily}`
-            : JSON.stringify(token.value))
-        : String(token.value);
-      
+      const displayValue =
+        typeof token.value === 'object'
+          ? token.type === 'typography'
+            ? `${(token.value as TypographyValue).fontSize}px ${(token.value as TypographyValue).fontFamily}`
+            : JSON.stringify(token.value)
+          : String(token.value);
+
       setEditValue(displayValue);
       setEditRole(token.role || '');
       setEditDescription(token.description || '');
@@ -46,28 +61,44 @@ export function TokenEditor({
         }
       }, 0);
     }
-  }, [isEditing, token.value, token.role, token.description, editMode]);
+  }, [
+    isEditing,
+    token.value,
+    token.role,
+    token.description,
+    editMode,
+    token.type,
+  ]);
 
   const handleSave = () => {
-    const updates: { value?: string | number | object; role?: string; description?: string } = {};
-    
+    const updates: {
+      value?: string | number | object;
+      role?: string;
+      description?: string;
+    } = {};
+
     if (editMode === 'value' && editValue.trim() !== '') {
       // 型に応じて値を変換
       let newValue: string | number | object = editValue.trim();
-      
+
       if (token.type === 'opacity') {
         const numValue = parseFloat(editValue);
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
           newValue = numValue;
         }
-      } else if (token.type === 'spacing' || token.type === 'size' || token.type === 'borderRadius') {
+      } else if (
+        token.type === 'spacing' ||
+        token.type === 'size' ||
+        token.type === 'borderRadius'
+      ) {
         const trimmedValue = editValue.trim();
         // サポートする単位: px, em, rem, %, vh, vw, pt, pc, in, cm, mm, ex, ch, vmin, vmax
-        const unitRegex = /^(\d*\.?\d+)(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax)?$/;
+        const unitRegex =
+          /^(\d*\.?\d+)(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax)?$/;
         const match = trimmedValue.match(unitRegex);
-        
+
         if (match) {
-          const [, number, unit] = match;
+          const [, , unit] = match;
           // 単位が指定されていない場合はpxを追加
           newValue = unit ? trimmedValue : trimmedValue + 'px';
         } else {
@@ -78,7 +109,10 @@ export function TokenEditor({
         // typography値の場合、元のオブジェクト構造を保持しながら更新
         // 簡易編集の場合はvalueフィールドを更新
         if (typeof token.value === 'object') {
-          newValue = { ...token.value as any, value: editValue.trim() };
+          newValue = {
+            ...(token.value as TypographyValue),
+            value: editValue.trim(),
+          };
         } else {
           newValue = editValue.trim();
         }
@@ -89,7 +123,7 @@ export function TokenEditor({
     } else if (editMode === 'description') {
       updates.description = editDescription.trim();
     }
-    
+
     // 空の更新でも保存を実行（役割や説明の削除を許可）
     onSave(token, updates);
     onCancelEdit();
@@ -100,7 +134,7 @@ export function TokenEditor({
     if (e.nativeEvent.isComposing) {
       return; // 変換中の場合は何もしない
     }
-    
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSave();
@@ -118,10 +152,12 @@ export function TokenEditor({
     const baseProps = {
       ref: inputRef,
       value: editValue,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value),
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setEditValue(e.target.value),
       onKeyDown: handleKeyDown,
-      className: "w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white",
-      type: getInputType()
+      className:
+        'w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white',
+      type: getInputType(),
     };
 
     if (token.type === 'opacity') {
@@ -129,7 +165,7 @@ export function TokenEditor({
         ...baseProps,
         min: 0,
         max: 1,
-        step: 0.01
+        step: 0.01,
       };
     }
 
@@ -140,25 +176,33 @@ export function TokenEditor({
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between group">
-          <div 
+          <div
             className="flex-1 cursor-pointer"
-            onDoubleClick={() => { setEditMode('value'); onStartEdit(); }}
+            onDoubleClick={() => {
+              setEditMode('value');
+              onStartEdit();
+            }}
             title="ダブルクリックで編集"
           >
-            <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">値:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+              値:
+            </span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {typeof token.value === 'string' 
-                ? token.value 
-                : typeof token.value === 'object' 
-                  ? (token.type === 'typography' 
-                      ? `${(token.value as any).fontSize}px ${(token.value as any).fontFamily}`
-                      : JSON.stringify(token.value))
+              {typeof token.value === 'string'
+                ? token.value
+                : typeof token.value === 'object'
+                  ? token.type === 'typography'
+                    ? `${(token.value as TypographyValue).fontSize}px ${(token.value as TypographyValue).fontFamily}`
+                    : JSON.stringify(token.value)
                   : String(token.value)}
             </span>
           </div>
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              onClick={() => { setEditMode('value'); onStartEdit(); }}
+              onClick={() => {
+                setEditMode('value');
+                onStartEdit();
+              }}
               className="p-1 text-gray-400 hover:text-blue-500 rounded"
               title="値を編集"
             >
@@ -175,22 +219,30 @@ export function TokenEditor({
             )}
           </div>
         </div>
-        
+
         <div className="space-y-2">
           {token.role && (
             <div className="flex items-start justify-between group">
-              <div 
+              <div
                 className="flex-1 min-w-0 cursor-pointer"
-                onDoubleClick={() => { setEditMode('role'); onStartEdit(); }}
+                onDoubleClick={() => {
+                  setEditMode('role');
+                  onStartEdit();
+                }}
                 title="ダブルクリックで編集"
               >
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">役割:</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+                  役割:
+                </span>
                 <span className="text-xs text-gray-600 dark:text-gray-300 break-words">
                   {token.role}
                 </span>
               </div>
               <button
-                onClick={() => { setEditMode('role'); onStartEdit(); }}
+                onClick={() => {
+                  setEditMode('role');
+                  onStartEdit();
+                }}
                 className="p-1 text-gray-400 hover:text-blue-500 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
                 title="役割を編集"
               >
@@ -198,21 +250,29 @@ export function TokenEditor({
               </button>
             </div>
           )}
-          
+
           {token.description && (
             <div className="flex items-start justify-between group">
-              <div 
+              <div
                 className="flex-1 min-w-0 cursor-pointer"
-                onDoubleClick={() => { setEditMode('description'); onStartEdit(); }}
+                onDoubleClick={() => {
+                  setEditMode('description');
+                  onStartEdit();
+                }}
                 title="ダブルクリックで編集"
               >
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">説明:</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+                  説明:
+                </span>
                 <span className="text-xs text-gray-600 dark:text-gray-300 break-words">
                   {token.description}
                 </span>
               </div>
               <button
-                onClick={() => { setEditMode('description'); onStartEdit(); }}
+                onClick={() => {
+                  setEditMode('description');
+                  onStartEdit();
+                }}
                 className="p-1 text-gray-400 hover:text-blue-500 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
                 title="説明を編集"
               >
@@ -221,17 +281,23 @@ export function TokenEditor({
             </div>
           )}
         </div>
-        
+
         {(!token.role || !token.description) && (
           <div className="flex items-center justify-between group">
             <span className="text-xs text-gray-400 italic">
-              {!token.role && !token.description ? '役割/説明を追加' : 
-               !token.role ? '役割を追加' : '説明を追加'}
+              {!token.role && !token.description
+                ? '役割/説明を追加'
+                : !token.role
+                  ? '役割を追加'
+                  : '説明を追加'}
             </span>
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {!token.role && (
                 <button
-                  onClick={() => { setEditMode('role'); onStartEdit(); }}
+                  onClick={() => {
+                    setEditMode('role');
+                    onStartEdit();
+                  }}
                   className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
                   title="役割を追加"
                 >
@@ -240,7 +306,10 @@ export function TokenEditor({
               )}
               {!token.description && (
                 <button
-                  onClick={() => { setEditMode('description'); onStartEdit(); }}
+                  onClick={() => {
+                    setEditMode('description');
+                    onStartEdit();
+                  }}
                   className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
                   title="説明を追加"
                 >
@@ -257,7 +326,11 @@ export function TokenEditor({
   return (
     <div className="space-y-2">
       <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-        {editMode === 'value' ? '値を編集:' : editMode === 'role' ? '役割を編集:' : '説明を編集:'}
+        {editMode === 'value'
+          ? '値を編集:'
+          : editMode === 'role'
+            ? '役割を編集:'
+            : '説明を編集:'}
       </div>
       <div className="flex items-start space-x-2">
         {editMode === 'value' ? (
@@ -266,11 +339,17 @@ export function TokenEditor({
           <textarea
             ref={textareaRef}
             value={editMode === 'role' ? editRole : editDescription}
-            onChange={(e) => editMode === 'role' ? setEditRole(e.target.value) : setEditDescription(e.target.value)}
+            onChange={(e) =>
+              editMode === 'role'
+                ? setEditRole(e.target.value)
+                : setEditDescription(e.target.value)
+            }
             onKeyDown={handleKeyDown}
             className="w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white resize-none"
             rows={2}
-            placeholder={editMode === 'role' ? '役割を入力...' : '説明を入力...'}
+            placeholder={
+              editMode === 'role' ? '役割を入力...' : '説明を入力...'
+            }
           />
         )}
         <div className="flex flex-col items-center space-y-1">

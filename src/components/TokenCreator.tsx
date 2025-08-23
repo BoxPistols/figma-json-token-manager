@@ -22,16 +22,22 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
     if (!name.trim() || !value.trim()) return;
 
     let processedValue: string | number = value.trim();
-    
+
     // 型に応じて値を処理
     if (tokenType === 'opacity') {
       const numValue = parseFloat(value);
       if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
         processedValue = numValue;
       }
-    } else if (tokenType === 'spacing' || tokenType === 'size' || tokenType === 'borderRadius') {
+    } else if (
+      tokenType === 'spacing' ||
+      tokenType === 'size' ||
+      tokenType === 'borderRadius'
+    ) {
       if (/^\d+px?$/.test(value.trim())) {
-        processedValue = value.trim().endsWith('px') ? value.trim() : value.trim() + 'px';
+        processedValue = value.trim().endsWith('px')
+          ? value.trim()
+          : value.trim() + 'px';
       }
     }
 
@@ -39,7 +45,7 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
       name: name.trim(),
       value: processedValue,
       role: role.trim() || undefined,
-      description: description.trim() || undefined
+      description: description.trim() || undefined,
     });
 
     // リセット
@@ -119,7 +125,7 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
         <h4 className="text-sm font-medium text-gray-900 dark:text-white">
           新しい{tokenType}トークンを作成
         </h4>
-        
+
         <div className="space-y-3">
           <div>
             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -133,7 +139,7 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white"
             />
           </div>
-          
+
           <div>
             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
               値 *
@@ -147,11 +153,11 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
               {...(tokenType === 'opacity' && {
                 min: 0,
                 max: 1,
-                step: 0.01
+                step: 0.01,
               })}
             />
           </div>
-          
+
           <div>
             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
               役割
@@ -164,7 +170,7 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white"
             />
           </div>
-          
+
           <div>
             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
               説明
@@ -178,7 +184,7 @@ export function TokenCreator({ tokenType, onCreateToken }: TokenCreatorProps) {
             />
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-2 pt-2">
           <button
             onClick={handleCancel}
