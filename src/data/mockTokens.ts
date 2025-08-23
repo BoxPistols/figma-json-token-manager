@@ -6,178 +6,212 @@ export const mockTokens: TokenData = {
     {
       name: "primary/main",
       value: "#2164D1",
-      role: "主要な色"
+      role: "ブランドカラー",
+      description: "主要アクションやブランディングに使用する色"
     },
     {
       name: "primary/dark",
       value: "#1E4B99", 
-      role: "主要な色の濃いバージョン"
+      role: "ブランドカラー（濃）",
+      description: "ホバー状態やアクティブ状態で使用する濃い主要色"
     },
     {
       name: "primary/light",
       value: "#4B7FE8",
-      role: "主要な色の薄いバージョン"
+      role: "ブランドカラー（薄）",
+      description: "軽い背景やアクセントに使用する薄い主要色"
     },
     {
       name: "primary/lighter",
       value: "#E8F1FE",
-      role: "主要な色の最も薄いバージョン"
+      role: "ブランドカラー（最薄）",
+      description: "フォーカス状態やベース背景に使用する最も薄い主要色"
     },
     // Secondary - キャンセルボタン用の彩度低めグレー
     {
       name: "secondary/main",
       value: "#495974",
-      role: "セカンダリ色"
+      role: "キャンセル・中性",
+      description: "キャンセルボタンや中性アクションに使用する色"
     },
     {
       name: "secondary/dark",
       value: "#384557",
-      role: "セカンダリ色の濃いバージョン"
+      role: "キャンセル・中性（濃）",
+      description: "ホバー状態のキャンセルボタンに使用する濃いセカンダリ色"
     },
     {
       name: "secondary/light",
       value: "#6B7A92",
-      role: "セカンダリ色の薄いバージョン"
+      role: "キャンセル・中性（薄）",
+      description: "軽い背景の中性要素に使用する薄いセカンダリ色"
     },
     {
       name: "secondary/lighter",
       value: "#E8EBF0",
-      role: "セカンダリ色の最も薄いバージョン"
+      role: "キャンセル・中性（最薄）",
+      description: "中性要素の背景に使用する最も薄いセカンダリ色"
     },
     // Success
     {
       name: "success/main",
       value: "#059669",
-      role: "成功状態"
+      role: "成功・確認",
+      description: "成功メッセージや完了状態を表す色"
     },
     {
       name: "success/dark",
       value: "#065F46",
-      role: "成功状態の濃いバージョン"
+      role: "成功・確認（濃）",
+      description: "ホバー状態や強調表示に使用する濃い成功色"
     },
     {
       name: "success/light",
       value: "#10B981",
-      role: "成功状態の薄いバージョン"
+      role: "成功・確認（薄）",
+      description: "軽い背景の成功要素に使用する薄い成功色"
     },
     {
       name: "success/lighter",
       value: "#ECFDF5",
-      role: "成功状態の最も薄いバージョン"
+      role: "成功・確認（最薄）",
+      description: "成功要素の背景に使用する最も薄い成功色"
     },
     // Warning
     {
       name: "warning/main",
       value: "#D97706",
-      role: "警告状態"
+      role: "注意・警告",
+      description: "注意喚起や警告メッセージを表す色"
     },
     {
       name: "warning/dark",
       value: "#92400E",
-      role: "警告状態の濃いバージョン"
+      role: "注意・警告（濃）",
+      description: "ホバー状態や強調表示に使用する濃い警告色"
     },
     {
       name: "warning/light",
       value: "#F59E0B",
-      role: "警告状態の薄いバージョン"
+      role: "注意・警告（薄）",
+      description: "軽い背景の警告要素に使用する薄い警告色"
     },
     {
       name: "warning/lighter",
       value: "#FEF3C7",
-      role: "警告状態の最も薄いバージョン"
+      role: "注意・警告（最薄）",
+      description: "警告要素の背景に使用する最も薄い警告色"
     },
     // Error
     {
       name: "error/main",
       value: "#DC2626",
-      role: "エラー状態"
+      role: "エラー・危険",
+      description: "エラーメッセージや危険な操作を表す色"
     },
     {
       name: "error/dark",
       value: "#991B1B",
-      role: "エラー状態の濃いバージョン"
+      role: "エラー・危険（濃）",
+      description: "ホバー状態や強調表示に使用する濃いエラー色"
     },
     {
       name: "error/light",
       value: "#F87171",
-      role: "エラー状態の薄いバージョン"
+      role: "エラー・危険（薄）",
+      description: "軽い背景のエラー要素に使用する薄いエラー色"
     },
     {
       name: "error/lighter",
       value: "#FEE2E2",
-      role: "エラー状態の最も薄いバージョン"
+      role: "エラー・危険（最薄）",
+      description: "エラー要素の背景に使用する最も薄いエラー色"
     },
     // Info
     {
       name: "info/main",
       value: "#0EA5E9",
-      role: "情報表示"
+      role: "情報・ガイド",
+      description: "情報提供やガイダンスを表す色"
     },
     {
       name: "info/dark",
       value: "#0284C7",
-      role: "情報表示の濃いバージョン"
+      role: "情報・ガイド（濃）",
+      description: "ホバー状態や強調表示に使用する濃い情報色"
     },
     {
       name: "info/light",
       value: "#38BDF8",
-      role: "情報表示の薄いバージョン"
+      role: "情報・ガイド（薄）",
+      description: "軽い背景の情報要素に使用する薄い情報色"
     },
     {
       name: "info/lighter",
       value: "#E0F2FE",
-      role: "情報表示の最も薄いバージョン"
+      role: "情報・ガイド（最薄）",
+      description: "情報要素の背景に使用する最も薄い情報色"
     },
     // Grey
     {
       name: "grey/50",
       value: "#F9FAFB",
-      role: "背景色"
+      role: "背景色",
+      description: "最も軽いページ背景やカード背景に使用"
     },
     {
       name: "grey/100", 
       value: "#F3F4F6",
-      role: "軽い背景色"
+      role: "軽い背景色",
+      description: "セクション区切りや軽いコンテナ背景に使用"
     },
     {
       name: "grey/200",
       value: "#E5E7EB",
-      role: "境界線色"
+      role: "境界線色",
+      description: "要素間の区切り線やボーダーに使用"
     },
     {
       name: "grey/300",
       value: "#D1D5DB",
-      role: "軽い境界線色"
+      role: "軽い境界線色",
+      description: "軽いボーダーやディバイダーに使用"
     },
     {
       name: "grey/400",
       value: "#9CA3AF",
-      role: "プレースホルダー色"
+      role: "プレースホルダー色",
+      description: "入力フィールドのヒントテキストに使用"
     },
     {
       name: "grey/500",
       value: "#6B7280",
-      role: "セカンダリテキスト色"
+      role: "セカンダリテキスト色",
+      description: "補助的な情報やキャプションに使用"
     },
     {
       name: "grey/600",
       value: "#4B5563",
-      role: "テキスト色"
+      role: "テキスト色",
+      description: "通常のテキストコンテンツに使用"
     },
     {
       name: "grey/700",
       value: "#374151",
-      role: "ダークテキスト色"
+      role: "ダークテキスト色",
+      description: "見出しや重要なテキストに使用"
     },
     {
       name: "grey/800",
       value: "#1F2937",
-      role: "より濃いテキスト色"
+      role: "より濃いテキスト色",
+      description: "主要見出しや強調テキストに使用"
     },
     {
       name: "grey/900",
       value: "#111827",
-      role: "メインテキスト色"
+      role: "メインテキスト色",
+      description: "最も重要なテキストや大見出しに使用"
     }
   ],
   variations: {

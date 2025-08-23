@@ -6,40 +6,6 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
   
   // Check if it's array format first
   if (isArrayFormat(data)) {
-    // Convert to standard format if it's array format
-    const standardFormat = convertToStandardFormat(data);
-    
-    function processToken(path: string[], token: DesignToken | TokenGroup) {
-      if ('$type' in token && '$value' in token) {
-        // Process typography values
-        if (token.$type === 'typography' && typeof token.$value === 'object') {
-          const typographyValue = token.$value as Record<string, unknown>;
-          // Remove 'px' and '%' from values
-          Object.keys(typographyValue).forEach(key => {
-            if (typeof typographyValue[key] === 'string') {
-              typographyValue[key] = typographyValue[key].replace(/(px|%)/g, '');
-            }
-          });
-        }
-
-        flattened.push({
-          path,
-          type: token.$type,
-          value: token.$value,
-          description: token.$description,
-          role: token.$description  // W3C標準では$descriptionにroleが入っている
-        });
-      } else {
-        Object.entries(token).forEach(([key, value]) => {
-          processToken([...path, key], value as DesignToken | TokenGroup);
-        });
-      }
-    }
-
-    Object.entries(standardFormat).forEach(([key, value]) => {
-      processToken([key], value as DesignToken | TokenGroup);
-    });
-  } else {
     // Handle array format directly (colors, typography, spacing, etc.)
     Object.entries(data).forEach(([type, tokens]) => {
       if (Array.isArray(tokens)) {
@@ -61,6 +27,40 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
           flattened.push(flattenedToken);
         });
       }
+    });
+  } else {
+    // Convert to standard format if it's W3C format
+    const standardFormat = convertToStandardFormat(data);
+    
+    function processToken(path: string[], token: DesignToken | TokenGroup) {
+      if ('$type' in token && '$value' in token) {
+        // Process typography values
+        if (token.$type === 'typography' && typeof token.$value === 'object') {
+          const typographyValue = token.$value as Record<string, unknown>;
+          // Remove 'px' and '%' from values
+          Object.keys(typographyValue).forEach(key => {
+            if (typeof typographyValue[key] === 'string') {
+              typographyValue[key] = typographyValue[key].replace(/(px|%)/g, '');
+            }
+          });
+        }
+
+        flattened.push({
+          path,
+          type: token.$type,
+          value: token.$value,
+          description: token.$description,
+          role: undefined  // W3C標準では role は別フィールド
+        });
+      } else {
+        Object.entries(token).forEach(([key, value]) => {
+          processToken([...path, key], value as DesignToken | TokenGroup);
+        });
+      }
+    }
+
+    Object.entries(standardFormat).forEach(([key, value]) => {
+      processToken([key], value as DesignToken | TokenGroup);
     });
   }
 

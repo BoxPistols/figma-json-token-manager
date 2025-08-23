@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Palette, Import, Search, Sun, Moon, LayoutGrid, Grid, BookOpen } from 'lucide-react';
+import { Palette, Import, Search, Sun, Moon, LayoutGrid, Grid, BookOpen, Table, X, ChevronUp } from 'lucide-react';
 import { TokenData, FlattenedToken, ImportError, Token } from './types';
 import { flattenTokens, validateToken, groupTokensByType, saveTokensToStorage, loadTokensFromStorage, clearTokensFromStorage } from './utils/tokenUtils';
 import { convertToArrayFormat, convertToStandardFormat } from './utils/tokenConverter';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { TokenGroup } from './components/TokenGroup';
+import { TokenTableView } from './components/TokenTableView';
 import { ExportPreviewModal } from './components/ExportPreviewModal';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { BulkDeleteMode } from './components/BulkDeleteMode';
 import { mockTokens } from './data/mockTokens';
 
 function App() {
@@ -28,8 +31,16 @@ function App() {
   const [selectedToken, setSelectedToken] = useState<FlattenedToken | null>(null);
   const [error, setError] = useState<ImportError | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isCompactMode, setIsCompactMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'table'>('standard');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   // フォントファミリーの動的読み込み用の副作用を追加
   useEffect(() => {
@@ -86,6 +97,23 @@ function App() {
     };
   }, [isSearchFocused]);
 
+  // Scroll to top functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
     if (isDarkMode) {
@@ -141,12 +169,20 @@ function App() {
   };
 
   const handleLoadExample = () => {
+    // localStorageをクリアして最新のmockTokensを確実にロード
+    clearTokensFromStorage();
     setTokens(mockTokens);
     setShowExampleData(true);
     setSelectedToken(null);
     setError(null);
     // サンプルデータ読み込み後に保存
     setTimeout(() => saveTokensToStorage(mockTokens), 0);
+  };
+
+  const handleForceRefresh = () => {
+    // 全データをクリアして完全にリセット
+    clearTokensFromStorage();
+    window.location.reload();
   };
 
   const handleClearExample = () => {
@@ -191,7 +227,16 @@ function App() {
     });
   };
 
-  const handleTokenDelete = (token: FlattenedToken) => {
+  const handleTokenDelete = (tokenToDelete: FlattenedToken) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'トークンを削除',
+      message: `"${tokenToDelete.path.join('/')}" を削除してもよろしいですか？この操作は元に戻せません。`,
+      onConfirm: () => performTokenDelete(tokenToDelete)
+    });
+  };
+
+  const performTokenDelete = (token: FlattenedToken) => {
     setTokens(currentTokens => {
       const updatedTokens = { ...currentTokens };
       
@@ -210,6 +255,18 @@ function App() {
       }
       
       return updatedTokens;
+    });
+  };
+
+  const handleBulkDelete = (tokensToDelete: FlattenedToken[]) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '一括削除確認',
+      message: `${tokensToDelete.length} 個のトークンを削除してもよろしいですか？この操作は元に戻せません。`,
+      onConfirm: () => {
+        tokensToDelete.forEach(token => performTokenDelete(token));
+        setIsBulkDeleteMode(false);
+      }
     });
   };
 
@@ -286,17 +343,46 @@ function App() {
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsCompactMode(!isCompactMode)}
-              className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-              title={isCompactMode ? "Switch to Full View" : "Switch to Compact View"}
-            >
-              {isCompactMode ? (
-                <LayoutGrid className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-              ) : (
-                <Grid className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-              )}
-            </button>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('standard')}
+                  className={`p-2 transition-colors ${
+                    viewMode === 'standard' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  title="Standard View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('compact')}
+                  className={`p-2 transition-colors border-x border-gray-300 dark:border-gray-600 ${
+                    viewMode === 'compact' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  title="Compact View"
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-2 transition-colors ${
+                    viewMode === 'table' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  title="Table View"
+                >
+                  <Table className="w-4 h-4" />
+                </button>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 min-w-0">
+                {viewMode === 'standard' ? 'Standard' : viewMode === 'compact' ? 'Compact' : 'Table'}
+              </span>
+            </div>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -342,6 +428,13 @@ function App() {
                 >
                   Reset
                 </button>
+                <button
+                  onClick={() => setIsBulkDeleteMode(true)}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  disabled={Object.keys(tokens).length === 0}
+                >
+                  一括削除
+                </button>
               </div>
               
               {Object.keys(tokens).length === 0 && (
@@ -362,12 +455,28 @@ function App() {
                     <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-700 dark:text-green-300">サンプルデータを表示中</span>
                   </div>
-                  <button
-                    onClick={handleClearExample}
-                    className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 underline"
-                  >
-                    クリア
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handleLoadExample}
+                      className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 underline"
+                      title="最新のサンプルデータを再読み込み"
+                    >
+                      再読み込み
+                    </button>
+                    <button
+                      onClick={handleForceRefresh}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+                      title="ページを完全リフレッシュ"
+                    >
+                      リフレッシュ
+                    </button>
+                    <button
+                      onClick={handleClearExample}
+                      className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 underline"
+                    >
+                      クリア
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -393,6 +502,15 @@ function App() {
                   onBlur={() => setIsSearchFocused(false)}
                   className="pl-10 pr-20 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg border-0 focus:ring-2 focus:ring-blue-500 dark:text-white w-full"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-12 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+                    title="検索をクリア"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                   <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
                     {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
@@ -406,27 +524,63 @@ function App() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-          {Object.entries(filteredTokens).map(([type, tokens]) => (
-            <TokenGroup
-              key={type}
-              name={type}
-              tokens={tokens}
-              onTokenSelect={setSelectedToken}
-              selectedToken={selectedToken}
-              isCompactMode={isCompactMode}
-              onTokenUpdate={handleTokenUpdate}
-              onTokenDelete={handleTokenDelete}
-              onTokenCreate={handleTokenCreate}
-            />
-          ))}
-        </div>
+        {isBulkDeleteMode ? (
+          <BulkDeleteMode
+            groupedTokens={filteredTokens}
+            onBulkDelete={handleBulkDelete}
+            onCancel={() => setIsBulkDeleteMode(false)}
+          />
+        ) : viewMode === 'table' ? (
+          <TokenTableView
+            groupedTokens={filteredTokens}
+            onTokenSelect={setSelectedToken}
+            onTokenUpdate={handleTokenUpdate}
+            onTokenDelete={handleTokenDelete}
+            selectedToken={selectedToken}
+          />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+            {Object.entries(filteredTokens).map(([type, tokens]) => (
+              <TokenGroup
+                key={type}
+                name={type}
+                tokens={tokens}
+                onTokenSelect={setSelectedToken}
+                selectedToken={selectedToken}
+                isCompactMode={viewMode === 'compact'}
+                onTokenUpdate={handleTokenUpdate}
+                onTokenDelete={handleTokenDelete}
+                onTokenCreate={handleTokenCreate}
+              />
+            ))}
+          </div>
+        )}
 
         <ExportPreviewModal
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           tokens={tokens}
         />
+        
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          type="danger"
+        />
+        
+        {/* Scroll to Top Button */}
+        {showScrollToTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 z-40"
+            title="トップに戻る"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );

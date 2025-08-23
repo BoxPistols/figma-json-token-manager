@@ -61,8 +61,18 @@ export function TokenEditor({
           newValue = numValue;
         }
       } else if (token.type === 'spacing' || token.type === 'size' || token.type === 'borderRadius') {
-        if (/^\d+px?$/.test(editValue.trim())) {
-          newValue = editValue.trim().endsWith('px') ? editValue.trim() : editValue.trim() + 'px';
+        const trimmedValue = editValue.trim();
+        // サポートする単位: px, em, rem, %, vh, vw, pt, pc, in, cm, mm, ex, ch, vmin, vmax
+        const unitRegex = /^(\d*\.?\d+)(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax)?$/;
+        const match = trimmedValue.match(unitRegex);
+        
+        if (match) {
+          const [, number, unit] = match;
+          // 単位が指定されていない場合はpxを追加
+          newValue = unit ? trimmedValue : trimmedValue + 'px';
+        } else {
+          // 数値 + 単位の形式でない場合はそのまま設定
+          newValue = trimmedValue;
         }
       } else if (token.type === 'typography') {
         // typography値の場合、元のオブジェクト構造を保持しながら更新
@@ -130,8 +140,12 @@ export function TokenEditor({
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between group">
-          <div className="flex-1">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">値:</div>
+          <div 
+            className="flex-1 cursor-pointer"
+            onDoubleClick={() => { setEditMode('value'); onStartEdit(); }}
+            title="ダブルクリックで編集"
+          >
+            <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">値:</span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {typeof token.value === 'string' 
                 ? token.value 
@@ -162,44 +176,77 @@ export function TokenEditor({
           </div>
         </div>
         
-        {(token.role || token.description) && (
-          <div className="flex items-start justify-between group">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                {token.role ? '役割:' : '説明:'}
+        <div className="space-y-2">
+          {token.role && (
+            <div className="flex items-start justify-between group">
+              <div 
+                className="flex-1 min-w-0 cursor-pointer"
+                onDoubleClick={() => { setEditMode('role'); onStartEdit(); }}
+                title="ダブルクリックで編集"
+              >
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">役割:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-300 break-words">
+                  {token.role}
+                </span>
               </div>
-              <span className="text-xs text-gray-600 dark:text-gray-300 break-words">
-                {token.role || token.description}
-              </span>
-            </div>
-            <button
-              onClick={() => { setEditMode(token.role ? 'role' : 'description'); onStartEdit(); }}
-              className="p-1 text-gray-400 hover:text-blue-500 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
-              title={token.role ? '役割を編集' : '説明を編集'}
-            >
-              <Edit3 className="w-3 h-3" />
-            </button>
-          </div>
-        )}
-        
-        {!token.role && !token.description && (
-          <div className="flex items-center justify-between group">
-            <span className="text-xs text-gray-400 italic">役割/説明を追加</span>
-            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => { setEditMode('role'); onStartEdit(); }}
-                className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
-                title="役割を追加"
+                className="p-1 text-gray-400 hover:text-blue-500 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
+                title="役割を編集"
               >
-                +役割
+                <Edit3 className="w-3 h-3" />
               </button>
+            </div>
+          )}
+          
+          {token.description && (
+            <div className="flex items-start justify-between group">
+              <div 
+                className="flex-1 min-w-0 cursor-pointer"
+                onDoubleClick={() => { setEditMode('description'); onStartEdit(); }}
+                title="ダブルクリックで編集"
+              >
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">説明:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-300 break-words">
+                  {token.description}
+                </span>
+              </div>
               <button
                 onClick={() => { setEditMode('description'); onStartEdit(); }}
-                className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
-                title="説明を追加"
+                className="p-1 text-gray-400 hover:text-blue-500 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
+                title="説明を編集"
               >
-                +説明
+                <Edit3 className="w-3 h-3" />
               </button>
+            </div>
+          )}
+        </div>
+        
+        {(!token.role || !token.description) && (
+          <div className="flex items-center justify-between group">
+            <span className="text-xs text-gray-400 italic">
+              {!token.role && !token.description ? '役割/説明を追加' : 
+               !token.role ? '役割を追加' : '説明を追加'}
+            </span>
+            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {!token.role && (
+                <button
+                  onClick={() => { setEditMode('role'); onStartEdit(); }}
+                  className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
+                  title="役割を追加"
+                >
+                  +役割
+                </button>
+              )}
+              {!token.description && (
+                <button
+                  onClick={() => { setEditMode('description'); onStartEdit(); }}
+                  className="p-1 text-gray-400 hover:text-green-500 rounded text-xs"
+                  title="説明を追加"
+                >
+                  +説明
+                </button>
+              )}
             </div>
           </div>
         )}
