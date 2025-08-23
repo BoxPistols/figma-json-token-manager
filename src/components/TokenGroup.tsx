@@ -74,21 +74,7 @@ export function TokenGroup({ name, tokens, onTokenSelect, selectedToken, isCompa
   }
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-          {name.charAt(0).toUpperCase() + name.slice(1)}
-          <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
-            ({tokens.length})
-          </span>
-        </h3>
-        {name === 'colors' && (
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            primary → secondary → success → warning → error → info → grey
-          </div>
-        )}
-      </div>
-
+    <div>
       <div className={name === 'colors' ? 'space-y-8' : 'space-y-6'}>
         {Object.entries(groupedTokens).map(([parentPath, groupTokens], groupIndex) => (
           <div 
@@ -484,6 +470,125 @@ function TokenPreview({ token, isCompact }: { token: FlattenedToken; isCompact: 
         {!isCompact && (
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
             {radiusValue}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Border Color tokens
+  if (token.type === 'borderColor') {
+    const colorValue = token.value as string;
+    const containerHeight = isCompact ? 'h-12' : 'h-20';
+    
+    return (
+      <div className="space-y-2">
+        <div className={`w-full flex items-center justify-center rounded-md ${containerHeight} bg-gray-50 dark:bg-gray-800`}>
+          <div 
+            className="w-16 h-8 rounded-md flex items-center justify-center text-xs font-medium border-4"
+            style={{ 
+              borderColor: colorValue,
+              backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF'
+            }}
+          >
+            Border
+          </div>
+        </div>
+        {!isCompact && (
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+            {colorValue}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Shadow tokens
+  if (token.type === 'shadow') {
+    const shadowValue = token.value as string;
+    const containerHeight = isCompact ? 'h-12' : 'h-20';
+    
+    return (
+      <div className="space-y-2">
+        <div className={`w-full flex items-center justify-center rounded-md ${containerHeight} bg-gray-100 dark:bg-gray-900 p-2`}>
+          <div 
+            className="w-12 h-8 bg-white dark:bg-gray-800 rounded-md flex items-center justify-center text-xs font-medium"
+            style={{ 
+              boxShadow: shadowValue === 'none' ? 'none' : shadowValue
+            }}
+          >
+            Card
+          </div>
+        </div>
+        {!isCompact && (
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400 break-all">
+            {shadowValue === 'none' ? 'No shadow' : 'Elevation'}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Breakpoint tokens
+  if (token.type === 'breakpoint') {
+    const breakpointValue = token.value as string;
+    const numericValue = parseInt(breakpointValue);
+    const containerHeight = isCompact ? 'h-12' : 'h-20';
+    
+    // Device icon based on breakpoint size
+    const deviceIcon = numericValue < 600 ? '📱' : 
+                      numericValue < 900 ? '📱' : 
+                      numericValue < 1200 ? '💻' : '🖥️';
+    
+    return (
+      <div className="space-y-2">
+        <div className={`w-full flex items-center justify-center rounded-md ${containerHeight} bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
+          <div className="text-center">
+            <div className="text-2xl mb-1">{deviceIcon}</div>
+            {!isCompact && (
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                {breakpointValue}
+              </div>
+            )}
+          </div>
+        </div>
+        {!isCompact && (
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+            {breakpointValue} and up
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Icon tokens  
+  if (token.type === 'icon') {
+    const iconValue = token.value as string;
+    const numericValue = parseInt(iconValue);
+    const containerHeight = isCompact ? 'h-12' : 'h-20';
+    
+    return (
+      <div className="space-y-2">
+        <div className={`w-full flex items-center justify-center rounded-md ${containerHeight} bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
+          <svg 
+            width={numericValue} 
+            height={numericValue} 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="text-gray-600 dark:text-gray-400"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        {!isCompact && (
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+            {iconValue} {iconValue.includes('px') ? '' : token.path[token.path.length - 1]?.includes('stroke') ? 'stroke' : 'size'}
           </div>
         )}
       </div>

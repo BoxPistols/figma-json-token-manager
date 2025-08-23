@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Palette, Import, Search, Sun, Moon, LayoutGrid, Grid, BookOpen, Table, X, ChevronUp } from 'lucide-react';
+import { Palette, Import, Search, Sun, Moon, LayoutGrid, Grid, BookOpen, Table, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { TokenData, FlattenedToken, ImportError, Token } from './types';
 import { flattenTokens, validateToken, groupTokensByType, saveTokensToStorage, loadTokensFromStorage, clearTokensFromStorage } from './utils/tokenUtils';
 import { convertToArrayFormat, convertToStandardFormat } from './utils/tokenConverter';
@@ -41,6 +41,13 @@ function App() {
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+
+  // Reset filters when view mode changes
+  useEffect(() => {
+    setSelectedTypes(new Set());
+  }, [viewMode, isBulkDeleteMode]);
 
   // フォントファミリーの動的読み込み用の副作用を追加
   useEffect(() => {
@@ -183,6 +190,53 @@ function App() {
     // 全データをクリアして完全にリセット
     clearTokensFromStorage();
     window.location.reload();
+  };
+
+  const toggleGroup = (groupName: string) => {
+    const newCollapsed = new Set(collapsedGroups);
+    if (newCollapsed.has(groupName)) {
+      newCollapsed.delete(groupName);
+    } else {
+      newCollapsed.add(groupName);
+    }
+    setCollapsedGroups(newCollapsed);
+  };
+
+  const getGroupDisplayName = (groupName: string) => {
+    const displayNames: Record<string, string> = {
+      color: 'Colors',
+      borderColor: 'Border Colors',
+      shadow: 'Shadows',
+      typography: 'Typography',
+      spacing: 'Spacing',
+      size: 'Sizes',
+      opacity: 'Opacity',
+      borderRadius: 'Border Radius',
+      breakpoint: 'Breakpoints',
+      icon: 'Icons'
+    };
+    return displayNames[groupName] || groupName.charAt(0).toUpperCase() + groupName.slice(1);
+  };
+
+  const handleAccordionControl = (action: 'openAll' | 'closeAll' | 'selectOpen') => {
+    const allGroupTypes = Object.keys(filteredTokens);
+    
+    switch (action) {
+      case 'openAll':
+        setCollapsedGroups(new Set());
+        break;
+      case 'closeAll':
+        setCollapsedGroups(new Set(allGroupTypes));
+        break;
+      case 'selectOpen':
+        // Keep only groups that have search matches or selected types
+        const groupsToKeep = allGroupTypes.filter(type => 
+          selectedTypes.size === 0 || selectedTypes.has(type)
+        );
+        const groupsToCollapse = allGroupTypes.filter(type => !groupsToKeep.includes(type));
+        setCollapsedGroups(new Set(groupsToCollapse));
+        break;
+    }
   };
 
   const handleClearExample = () => {
@@ -505,7 +559,7 @@ function App() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-12 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+                    className="absolute right-20 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded z-10 bg-white dark:bg-gray-700"
                     title="検索をクリア"
                   >
                     <X className="w-4 h-4" />
@@ -525,33 +579,211 @@ function App() {
         </div>
 
         {isBulkDeleteMode ? (
-          <BulkDeleteMode
-            groupedTokens={filteredTokens}
-            onBulkDelete={handleBulkDelete}
-            onCancel={() => setIsBulkDeleteMode(false)}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+            {/* Filter for Bulk Delete Mode */}
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Filter Tokens for Bulk Delete</h3>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(filteredTokens).map(([type, tokens]) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      const newSelected = new Set(selectedTypes);
+                      if (newSelected.has(type)) {
+                        newSelected.delete(type);
+                      } else {
+                        newSelected.add(type);
+                      }
+                      setSelectedTypes(newSelected);
+                    }}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedTypes.size === 0 || selectedTypes.has(type)
+                        ? 'bg-red-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                    }`}
+                  >
+                    {getGroupDisplayName(type)} ({tokens.length})
+                  </button>
+                ))}
+                {selectedTypes.size > 0 && (
+                  <button
+                    onClick={() => setSelectedTypes(new Set())}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <BulkDeleteMode
+              groupedTokens={selectedTypes.size === 0 ? filteredTokens : 
+                Object.fromEntries(
+                  Object.entries(filteredTokens).filter(([type]) => selectedTypes.has(type))
+                )
+              }
+              onBulkDelete={handleBulkDelete}
+              onCancel={() => setIsBulkDeleteMode(false)}
+            />
+          </div>
         ) : viewMode === 'table' ? (
-          <TokenTableView
-            groupedTokens={filteredTokens}
-            onTokenSelect={setSelectedToken}
-            onTokenUpdate={handleTokenUpdate}
-            onTokenDelete={handleTokenDelete}
-            selectedToken={selectedToken}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+            {/* Table Filters */}
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Filter by Token Type</h3>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(filteredTokens).map(([type, tokens]) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      const newSelected = new Set(selectedTypes);
+                      if (newSelected.has(type)) {
+                        newSelected.delete(type);
+                      } else {
+                        newSelected.add(type);
+                      }
+                      setSelectedTypes(newSelected);
+                    }}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedTypes.size === 0 || selectedTypes.has(type)
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                    }`}
+                  >
+                    {getGroupDisplayName(type)} ({tokens.length})
+                  </button>
+                ))}
+                {selectedTypes.size > 0 && (
+                  <button
+                    onClick={() => setSelectedTypes(new Set())}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <TokenTableView
+              groupedTokens={selectedTypes.size === 0 ? filteredTokens : 
+                Object.fromEntries(
+                  Object.entries(filteredTokens).filter(([type]) => selectedTypes.has(type))
+                )
+              }
+              onTokenSelect={setSelectedToken}
+              onTokenUpdate={handleTokenUpdate}
+              onTokenDelete={handleTokenDelete}
+              selectedToken={selectedToken}
+            />
+          </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-            {Object.entries(filteredTokens).map(([type, tokens]) => (
-              <TokenGroup
-                key={type}
-                name={type}
-                tokens={tokens}
-                onTokenSelect={setSelectedToken}
-                selectedToken={selectedToken}
-                isCompactMode={viewMode === 'compact'}
-                onTokenUpdate={handleTokenUpdate}
-                onTokenDelete={handleTokenDelete}
-                onTokenCreate={handleTokenCreate}
-              />
+            {/* Accordion Controls */}
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Token Groups</h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleAccordionControl('openAll')}
+                    className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                  >
+                    All Open
+                  </button>
+                  <button
+                    onClick={() => handleAccordionControl('closeAll')}
+                    className="px-3 py-1 text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                  >
+                    All Close
+                  </button>
+                  <button
+                    onClick={() => handleAccordionControl('selectOpen')}
+                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                  >
+                    Select Open
+                  </button>
+                </div>
+              </div>
+              
+              {/* Filter by Token Type for Card Views */}
+              <div className="mt-4">
+                <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">Filter by Token Type</h4>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(filteredTokens).map(([type, tokens]) => (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        const newSelected = new Set(selectedTypes);
+                        if (newSelected.has(type)) {
+                          newSelected.delete(type);
+                        } else {
+                          newSelected.add(type);
+                        }
+                        setSelectedTypes(newSelected);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        selectedTypes.size === 0 || selectedTypes.has(type)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                      }`}
+                    >
+                      {getGroupDisplayName(type)} ({tokens.length})
+                    </button>
+                  ))}
+                  {selectedTypes.size > 0 && (
+                    <button
+                      onClick={() => setSelectedTypes(new Set())}
+                      className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {Object.entries(selectedTypes.size === 0 ? filteredTokens : 
+              Object.fromEntries(
+                Object.entries(filteredTokens).filter(([type]) => selectedTypes.has(type))
+              )
+            ).map(([type, tokens]) => (
+              <div key={type} className="mb-6 last:mb-0">
+                {/* Accordion Header */}
+                <button
+                  onClick={() => toggleGroup(type)}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors mb-4"
+                >
+                  <div className="flex items-center space-x-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {getGroupDisplayName(type)}
+                    </h3>
+                    <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-full">
+                      {tokens.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <ChevronDown 
+                      className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                        collapsedGroups.has(type) ? 'rotate-0' : 'rotate-180'
+                      }`}
+                    />
+                  </div>
+                </button>
+                
+                {/* Accordion Content */}
+                {!collapsedGroups.has(type) && (
+                  <TokenGroup
+                    key={type}
+                    name={type}
+                    tokens={tokens}
+                    onTokenSelect={setSelectedToken}
+                    selectedToken={selectedToken}
+                    isCompactMode={viewMode === 'compact'}
+                    onTokenUpdate={handleTokenUpdate}
+                    onTokenDelete={handleTokenDelete}
+                    onTokenCreate={handleTokenCreate}
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}

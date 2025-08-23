@@ -12,6 +12,22 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
         tokens.forEach(token => {
           // Split name to create path
           const path = token.name.split('/');
+          let tokenValue = token.value;
+          
+          // For typography tokens, create a complete value object
+          if (type === 'typography') {
+            tokenValue = {
+              value: token.value,
+              fontFamily: token.fontFamily,
+              fontSize: token.fontSize,
+              fontWeight: token.fontWeight,
+              lineHeight: token.lineHeight,
+              letterSpacing: token.letterSpacing,
+              textTransform: token.textTransform,
+              textDecoration: token.textDecoration
+            };
+          }
+          
           const flattenedToken = {
             path,
             type: type === 'colors' ? 'color' : 
@@ -19,8 +35,12 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
                   type === 'spacing' ? 'spacing' :
                   type === 'size' ? 'size' :
                   type === 'opacity' ? 'opacity' :
-                  type === 'borderRadius' ? 'borderRadius' : type.slice(0, -1), // remove 's'
-            value: token.value,
+                  type === 'borderRadius' ? 'borderRadius' :
+                  type === 'borderColor' ? 'borderColor' :
+                  type === 'shadow' ? 'shadow' :
+                  type === 'breakpoint' ? 'breakpoint' :
+                  type === 'icon' ? 'icon' : type.slice(0, -1), // remove 's'
+            value: tokenValue,
             description: token.description,
             role: token.role
           };
@@ -119,7 +139,36 @@ export function groupTokensByType(tokens: FlattenedToken[]): Record<string, Flat
     groups[type].push(token);
   });
 
-  return groups;
+  // Define logical order - BorderColor and Shadow go under Color family
+  const logicalOrder = [
+    'color',
+    'borderColor', 
+    'shadow',
+    'typography',
+    'spacing',
+    'size',
+    'opacity',
+    'borderRadius',
+    'breakpoint',
+    'icon'
+  ];
+
+  // Sort groups by logical order
+  const sortedGroups: Record<string, FlattenedToken[]> = {};
+  logicalOrder.forEach(type => {
+    if (groups[type]) {
+      sortedGroups[type] = groups[type];
+    }
+  });
+
+  // Add any remaining groups that weren't in the predefined order
+  Object.entries(groups).forEach(([type, tokens]) => {
+    if (!sortedGroups[type]) {
+      sortedGroups[type] = tokens;
+    }
+  });
+
+  return sortedGroups;
 }
 
 // Local Storage Functions

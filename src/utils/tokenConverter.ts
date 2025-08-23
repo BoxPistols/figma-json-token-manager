@@ -118,7 +118,11 @@ export function isArrayFormat(data: unknown): boolean {
     Array.isArray(tokenData.spacing) ||
     Array.isArray(tokenData.size) ||
     Array.isArray(tokenData.opacity) ||
-    Array.isArray(tokenData.borderRadius)
+    Array.isArray(tokenData.borderRadius) ||
+    Array.isArray(tokenData.borderColor) ||
+    Array.isArray(tokenData.shadow) ||
+    Array.isArray(tokenData.breakpoint) ||
+    Array.isArray(tokenData.icon)
   );
 }
 

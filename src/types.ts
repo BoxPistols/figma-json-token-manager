@@ -7,7 +7,7 @@ export interface TokenGroup {
 }
 
 export interface DesignToken {
-  $type: 'color' | 'typography' | 'spacing' | 'size' | 'opacity' | 'borderRadius';
+  $type: 'color' | 'typography' | 'spacing' | 'size' | 'opacity' | 'borderRadius' | 'borderColor' | 'shadow' | 'breakpoint' | 'icon';
   $value: string | number | Record<string, unknown>;
   $description?: string;
 }
@@ -66,6 +66,10 @@ export interface TokenData {
   size?: Token[];
   opacity?: Token[];
   borderRadius?: Token[];
+  borderColor?: Token[];
+  shadow?: Token[];
+  breakpoint?: Token[];
+  icon?: Token[];
   [key: string]: unknown; // その他のプロパティを許可
 }
 

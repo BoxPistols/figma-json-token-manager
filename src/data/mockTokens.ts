@@ -655,5 +655,155 @@ export const mockTokens: TokenData = {
       value: "64px",
       role: "最大サイズ"
     }
+  ],
+  // Border Color tokens based on Material Design 3
+  borderColor: [
+    {
+      name: "border/primary",
+      value: "#E0E0E0",
+      role: "プライマリ境界線",
+      description: "主要な境界線やディバイダーに使用"
+    },
+    {
+      name: "border/secondary",
+      value: "#F5F5F5", 
+      role: "セカンダリ境界線",
+      description: "軽い境界線やカード境界に使用"
+    },
+    {
+      name: "border/focused",
+      value: "#2196F3",
+      role: "フォーカス境界線",
+      description: "フォーカス状態の要素境界線"
+    },
+    {
+      name: "border/error",
+      value: "#F44336",
+      role: "エラー境界線", 
+      description: "エラー状態の要素境界線"
+    },
+    {
+      name: "border/disabled",
+      value: "#BDBDBD",
+      role: "無効境界線",
+      description: "無効状態の要素境界線"
+    }
+  ],
+  // Shadow tokens based on Material Design 3 elevation
+  shadow: [
+    {
+      name: "elevation/level0",
+      value: "none",
+      role: "エレベーション0",
+      description: "影なし - フラットな表面"
+    },
+    {
+      name: "elevation/level1", 
+      value: "0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)",
+      role: "エレベーション1",
+      description: "カード、ボタンの軽い浮き上がり"
+    },
+    {
+      name: "elevation/level2",
+      value: "0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23)",
+      role: "エレベーション2", 
+      description: "アプリバー、メニューの中程度の浮き上がり"
+    },
+    {
+      name: "elevation/level3",
+      value: "0px 10px 20px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23)",
+      role: "エレベーション3",
+      description: "ドロワー、モーダルの強い浮き上がり"
+    },
+    {
+      name: "elevation/level4",
+      value: "0px 14px 28px rgba(0, 0, 0, 0.25), 0px 10px 10px rgba(0, 0, 0, 0.22)",
+      role: "エレベーション4", 
+      description: "ナビゲーション、FABの最も強い浮き上がり"
+    }
+  ],
+  // Breakpoint tokens based on Material Design and common practices
+  breakpoint: [
+    {
+      name: "screen/xs",
+      value: "0px",
+      role: "XSブレークポイント",
+      description: "モバイル（縦向き）- 0px以上"
+    },
+    {
+      name: "screen/sm", 
+      value: "600px",
+      role: "SMブレークポイント",
+      description: "タブレット（縦向き）- 600px以上"
+    },
+    {
+      name: "screen/md",
+      value: "900px", 
+      role: "MDブレークポイント",
+      description: "タブレット（横向き）- 900px以上"
+    },
+    {
+      name: "screen/lg",
+      value: "1200px",
+      role: "LGブレークポイント", 
+      description: "デスクトップ - 1200px以上"
+    },
+    {
+      name: "screen/xl",
+      value: "1536px",
+      role: "XLブレークポイント",
+      description: "大画面デスクトップ - 1536px以上"
+    }
+  ],
+  // Icon tokens for Figma-based design systems
+  icon: [
+    {
+      name: "icon/size/xs",
+      value: "12px",
+      role: "XSアイコンサイズ", 
+      description: "インライン要素内の小さなアイコン"
+    },
+    {
+      name: "icon/size/sm",
+      value: "16px",
+      role: "SMアイコンサイズ",
+      description: "ボタンやフォーム内の標準アイコン"
+    },
+    {
+      name: "icon/size/md", 
+      value: "24px",
+      role: "MDアイコンサイズ",
+      description: "ツールバーやリスト項目のアイコン"
+    },
+    {
+      name: "icon/size/lg",
+      value: "32px", 
+      role: "LGアイコンサイズ",
+      description: "見出しや重要なアクションアイコン"
+    },
+    {
+      name: "icon/size/xl",
+      value: "48px",
+      role: "XLアイコンサイズ",
+      description: "ヒーローエリアや装飾的なアイコン"
+    },
+    {
+      name: "icon/stroke/thin",
+      value: "1px",
+      role: "細線ストローク",
+      description: "繊細なアイコンの線の太さ"
+    },
+    {
+      name: "icon/stroke/regular",
+      value: "1.5px", 
+      role: "標準ストローク",
+      description: "一般的なアイコンの線の太さ"
+    },
+    {
+      name: "icon/stroke/bold",
+      value: "2px",
+      role: "太線ストローク", 
+      description: "強調アイコンの線の太さ"
+    }
   ]
 };
