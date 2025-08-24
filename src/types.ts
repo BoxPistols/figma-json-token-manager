@@ -7,21 +7,28 @@ export interface TokenGroup {
 }
 
 export interface DesignToken {
-  $type: 'color' | 'typography' | 'spacing' | 'size' | 'opacity' | 'borderRadius';
-  $value: string | number | Record<string, any>;
+  $type:
+    | 'color'
+    | 'typography'
+    | 'spacing'
+    | 'size'
+    | 'opacity'
+    | 'borderRadius'
+    | 'borderColor'
+    | 'shadow'
+    | 'breakpoint'
+    | 'icon';
+  $value: string | number | Record<string, unknown>;
   $description?: string;
+  $role?: string;
 }
 
-// カラートークン定義
-export interface ColorToken {
+// 汎用トークン定義
+export interface Token {
   name: string;
-  value: string;
+  value: string | number | Record<string, unknown>;
   role?: string;
-}
-
-// タイポグラフィトークン定義
-export interface TypographyToken {
-  name: string;
+  description?: string;
   fontFamily?: string;
   fontSize?: string | number;
   fontWeight?: number;
@@ -29,7 +36,22 @@ export interface TypographyToken {
   letterSpacing?: string | number;
   textTransform?: string;
   textDecoration?: string;
-  description?: string;
+}
+
+// カラートークン定義（後方互換性のため）
+export interface ColorToken extends Token {
+  value: string;
+}
+
+// タイポグラフィトークン定義（後方互換性のため）
+export interface TypographyToken extends Token {
+  fontFamily?: string;
+  fontSize?: string | number;
+  fontWeight?: number;
+  lineHeight?: string | number;
+  letterSpacing?: string | number;
+  textTransform?: string;
+  textDecoration?: string;
 }
 
 // カラーバリエーション定義
@@ -46,18 +68,26 @@ export interface ColorVariations {
   [colorName: string]: ColorVariation;
 }
 
-// トークンデータ構造
+// トークンデータ構造（Array形式とW3C形式の両方をサポート）
 export interface TokenData {
-  colors: ColorToken[];
-  variations: ColorVariations;
-  typography: TypographyToken[];
-  [key: string]: any; // その他のプロパティを許可
+  colors?: Token[];
+  variations?: ColorVariations;
+  typography?: Token[];
+  spacing?: Token[];
+  size?: Token[];
+  opacity?: Token[];
+  borderRadius?: Token[];
+  borderColor?: Token[];
+  shadow?: Token[];
+  breakpoint?: Token[];
+  icon?: Token[];
+  [key: string]: unknown; // W3C形式のネストした構造や他のプロパティを許可
 }
 
 export interface FlattenedToken {
   path: string[];
   type: string;
-  value: string | number | Record<string, any>;
+  value: string | number | Record<string, unknown>;
   description?: string;
   role?: string;
 }

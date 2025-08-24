@@ -3,7 +3,7 @@ import { hexToRgb } from './colorHelpers';
 export function calculateContrastRatio(color1: string, color2: string): number {
   const rgb1 = hexToRgb(color1);
   const rgb2 = hexToRgb(color2);
-  
+
   if (!rgb1 || !rgb2) return 1;
 
   const l1 = getRelativeLuminance(rgb1);
@@ -17,14 +17,20 @@ export function calculateContrastRatio(color1: string, color2: string): number {
 
 export function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 }
 
-export function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number
+): [number, number, number] {
   r /= 255;
   g /= 255;
   b /= 255;
@@ -64,8 +70,8 @@ export function isLightColor(hex: string): boolean {
   return lightness > 50;
 }
 
-function getRelativeLuminance(rgb: { r: number, g: number, b: number }) {
-  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
+function getRelativeLuminance(rgb: { r: number; g: number; b: number }) {
+  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map((c) => {
     c = c / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   });

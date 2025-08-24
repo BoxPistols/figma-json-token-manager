@@ -1,59 +1,60 @@
 /* Base Styles */
 :root {
-  --primary: #0D99FF;
-  --primary-dark: #0077CC;
-  --primary-light: #C6E5FF;
-  --secondary: #6E56CF;
-  --success: #30C998;
-  --warning: #FFA800;
-  --error: #FF5247;
-  
+  --primary: #0d99ff;
+  --primary-dark: #0077cc;
+  --primary-light: #c6e5ff;
+  --secondary: #6e56cf;
+  --success: #30c998;
+  --warning: #ffa800;
+  --error: #ff5247;
+
   /* Light Theme */
-  --background: #FFFFFF;
-  --surface: #F5F5F7;
-  --surface-hover: #E9E9EC;
-  --border: #E4E4E7;
+  --background: #ffffff;
+  --surface: #f5f5f7;
+  --surface-hover: #e9e9ec;
+  --border: #e4e4e7;
   --text-primary: #111111;
   --text-secondary: #555555;
   --text-tertiary: #888888;
-  
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   --spacing-xxl: 48px;
-  
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  
+
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
 }
 
 /* Dark Theme */
 .dark-mode {
-  --background: #1E1E1E;
-  --surface: #2A2A2A;
+  --background: #1e1e1e;
+  --surface: #2a2a2a;
   --surface-hover: #333333;
   --border: #393939;
-  --text-primary: #FFFFFF;
-  --text-secondary: #AAAAAA;
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
   --text-tertiary: #666666;
-  
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-  
-  --primary-light: #1A3A57;
+
+  --primary-light: #1a3a57;
 }
 
 /* Reset & Base Styles */
@@ -75,13 +76,21 @@ body {
   overflow-x: hidden;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-weight: 500;
   line-height: 1.2;
@@ -116,7 +125,8 @@ a:hover {
   color: var(--primary-dark);
 }
 
-pre, code {
+pre,
+code {
   font-family: var(--font-mono);
   background-color: var(--surface);
   border-radius: var(--radius-sm);
@@ -234,7 +244,8 @@ code {
   align-items: center;
 }
 
-.footer-info, .footer-actions {
+.footer-info,
+.footer-actions {
   display: flex;
   gap: var(--spacing-md);
 }
@@ -565,7 +576,8 @@ code {
   margin-bottom: var(--spacing-lg);
 }
 
-.export-options, .format-settings {
+.export-options,
+.format-settings {
   margin-bottom: var(--spacing-xl);
   padding: var(--spacing-lg);
   background-color: var(--surface);
@@ -697,7 +709,8 @@ code {
 
 .search-input {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-xl);
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm)
+    var(--spacing-xl);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background-color: var(--background);
@@ -864,13 +877,17 @@ code {
   border: 1px solid var(--border);
 }
 
-.color-values, .typography-values, .spacing-values {
+.color-values,
+.typography-values,
+.spacing-values {
   display: grid;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
 }
 
-.color-value-item, .typography-value-item, .spacing-value-item {
+.color-value-item,
+.typography-value-item,
+.spacing-value-item {
   display: flex;
   justify-content: space-between;
   padding: var(--spacing-sm);
@@ -1034,32 +1051,32 @@ code {
     flex-direction: column;
     gap: var(--spacing-md);
   }
-  
+
   .header-nav {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .nav-button {
     flex: 1;
     padding: var(--spacing-sm);
   }
-  
+
   .action-buttons {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .preview-header {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-md);
   }
-  
+
   .search-container {
     width: 100%;
   }
-  
+
   .token-detail-panel {
     width: 100%;
   }

@@ -2,18 +2,18 @@
 
 export function renderPreview(state) {
   const { tokens, selectedCategory, selectedToken, searchQuery } = state;
-  
+
   // Default to first category if none selected
   const activeCategory = selectedCategory || getFirstCategory(tokens);
-  
+
   // Get active tokens
   const activeTokens = tokens[activeCategory] || {};
-  
+
   // Filter tokens by search query if present
-  const filteredTokens = searchQuery 
+  const filteredTokens = searchQuery
     ? filterTokensBySearch(activeTokens, searchQuery)
     : activeTokens;
-  
+
   return `
     <div class="preview-container">
       <div class="preview-header">
@@ -43,15 +43,17 @@ export function renderPreview(state) {
 
 // Render category tabs
 function renderCategoryTabs(tokens, activeCategory) {
-  const categories = Object.keys(tokens).filter(cat => 
-    tokens[cat] && Object.keys(tokens[cat]).length > 0
+  const categories = Object.keys(tokens).filter(
+    (cat) => tokens[cat] && Object.keys(tokens[cat]).length > 0
   );
-  
+
   if (categories.length === 0) {
     return '<div class="empty-message">No tokens available</div>';
   }
-  
-  return categories.map(category => `
+
+  return categories
+    .map(
+      (category) => `
     <button class="category-tab ${category === activeCategory ? 'active' : ''}" data-category="${category}">
       <span class="category-icon">
         ${getCategoryIcon(category)}
@@ -59,25 +61,31 @@ function renderCategoryTabs(tokens, activeCategory) {
       <span class="category-name">${formatCategoryName(category)}</span>
       <span class="category-count">${Object.keys(tokens[category] || {}).length}</span>
     </button>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 // Render token list
 function renderTokenList(tokens, category, selectedToken) {
   const tokenList = Object.entries(tokens);
-  
+
   if (tokenList.length === 0) {
     return '<div class="empty-message">No tokens found</div>';
   }
-  
-  return tokenList.map(([tokenName, token]) => `
+
+  return tokenList
+    .map(
+      ([tokenName, token]) => `
     <div class="token-item ${selectedToken && selectedToken.name === token.name ? 'selected' : ''}" 
          data-category="${category}" 
          data-token="${tokenName}">
       ${renderTokenPreview(token, category)}
       <div class="token-name">${token.name}</div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 // Render token preview based on category
@@ -119,7 +127,7 @@ function renderTokenPreview(token, category) {
 // Render detailed token information
 function renderTokenDetail(token, category) {
   let detailContent = '';
-  
+
   if (category === 'colors') {
     detailContent = `
       <div class="color-detail">
@@ -129,12 +137,16 @@ function renderTokenDetail(token, category) {
             <span class="value-label">HEX</span>
             <span class="value-text">${token.value}</span>
           </div>
-          ${token.opacity !== undefined ? `
+          ${
+            token.opacity !== undefined
+              ? `
             <div class="color-value-item">
               <span class="value-label">Opacity</span>
               <span class="value-text">${token.opacity}</span>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     `;
@@ -162,18 +174,26 @@ function renderTokenDetail(token, category) {
             <span class="value-label">Weight</span>
             <span class="value-text">${token.fontWeight}</span>
           </div>
-          ${token.lineHeight ? `
+          ${
+            token.lineHeight
+              ? `
             <div class="typography-value-item">
               <span class="value-label">Line Height</span>
               <span class="value-text">${token.lineHeight}px</span>
             </div>
-          ` : ''}
-          ${token.letterSpacing ? `
+          `
+              : ''
+          }
+          ${
+            token.letterSpacing
+              ? `
             <div class="typography-value-item">
               <span class="value-label">Letter Spacing</span>
               <span class="value-text">${token.letterSpacing}px</span>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     `;
@@ -197,7 +217,7 @@ function renderTokenDetail(token, category) {
       </div>
     `;
   }
-  
+
   return `
     <div class="token-detail-panel">
       <h2 class="token-detail-name">${token.name}</h2>
@@ -214,8 +234,8 @@ function renderTokenDetail(token, category) {
 
 // Helper functions
 function getFirstCategory(tokens) {
-  const categories = Object.keys(tokens).filter(cat => 
-    tokens[cat] && Object.keys(tokens[cat]).length > 0
+  const categories = Object.keys(tokens).filter(
+    (cat) => tokens[cat] && Object.keys(tokens[cat]).length > 0
   );
   return categories[0] || null;
 }
@@ -258,14 +278,18 @@ function getCategoryIcon(category) {
 function filterTokensBySearch(tokens, query) {
   const lowerQuery = query.toLowerCase();
   const filteredTokens = {};
-  
+
   Object.entries(tokens).forEach(([key, token]) => {
-    if (token.name.toLowerCase().includes(lowerQuery) || 
-        (token.value && token.value.toString().toLowerCase().includes(lowerQuery)) ||
-        (token.description && token.description.toLowerCase().includes(lowerQuery))) {
+    if (
+      token.name.toLowerCase().includes(lowerQuery) ||
+      (token.value &&
+        token.value.toString().toLowerCase().includes(lowerQuery)) ||
+      (token.description &&
+        token.description.toLowerCase().includes(lowerQuery))
+    ) {
       filteredTokens[key] = token;
     }
   });
-  
+
   return filteredTokens;
 }
