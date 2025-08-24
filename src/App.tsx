@@ -31,7 +31,6 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { BulkDeleteMode } from './components/BulkDeleteMode';
 import { PasteJsonModal } from './components/PasteJsonModal';
 import { HelpModal } from './components/HelpModal';
-import { mockTokens } from './data/mockTokens';
 import { w3cSampleTokens } from './data/w3cSampleTokens';
 
 function App() {
@@ -44,7 +43,7 @@ function App() {
     const storedTokens = loadTokensFromStorage();
     return storedTokens && Object.keys(storedTokens).length > 0
       ? storedTokens
-      : mockTokens;
+      : w3cSampleTokens;
   });
 
   const [showExampleData, setShowExampleData] = useState(() => {
@@ -76,6 +75,7 @@ function App() {
     new Set()
   );
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   // setImportMode, pasteInput, setPasteInput は未使用のため削除
 
   // Helper function to map token type to array property name
@@ -246,121 +246,17 @@ function App() {
   };
 
   const handleLoadExample = () => {
-    // localStorageをクリアして最新のmockTokensを確実にロード
+    // localStorageをクリアして最新のw3cSampleTokensを確実にロード
     clearTokensFromStorage();
-    setTokens(mockTokens);
+    setTokens(w3cSampleTokens);
     setShowExampleData(true);
     setSelectedToken(null);
     setError(null);
-    // サンプルデータ読み込み後に保存
-    setTimeout(() => saveTokensToStorage(mockTokens), 0);
+    setImportErrors([]);
+    // W3C形式のサンプルデータを保存
+    setTimeout(() => saveTokensToStorage(w3cSampleTokens), 0);
   };
 
-  // Helper function to convert nested W3C tokens to TokenData format
-  const convertW3CTokensToTokenData = (w3cTokens: unknown): TokenData => {
-    const result: TokenData = {};
-
-    // Interface for W3C token structure
-    interface W3CToken {
-      $type: string;
-      $value: string | number | Record<string, unknown>;
-      $description?: string;
-    }
-
-    const traverse = (obj: unknown, path: string[] = []) => {
-      if (typeof obj !== 'object' || obj === null) return;
-      Object.entries(obj).forEach(([key, value]) => {
-        if (
-          value &&
-          typeof value === 'object' &&
-          '$type' in value &&
-          '$value' in value
-        ) {
-          const token = value as W3CToken;
-          const tokenType = token.$type;
-          const tokenName = [...path, key].join('/');
-
-          // Ensure value is string | number | Record<string, unknown>
-          let tokenValue: string | number | Record<string, unknown>;
-          const rawValue = token.$value;
-          if (
-            typeof rawValue === 'string' ||
-            typeof rawValue === 'number' ||
-            (typeof rawValue === 'object' && rawValue !== null)
-          ) {
-            tokenValue = rawValue;
-          } else {
-            tokenValue = String(rawValue);
-          }
-
-          const tokenObject: Token = {
-            name: tokenName,
-            value: tokenValue as string | number | Record<string, unknown>,
-            description: (value as W3CToken).$description,
-          };
-
-          // Map tokenType to TokenData property name
-          let propName = '';
-          switch (tokenType) {
-            case 'color':
-              propName = 'colors';
-              break;
-            case 'typography':
-              propName = 'typography';
-              break;
-            case 'spacing':
-              propName = 'spacing';
-              break;
-            case 'size':
-              propName = 'size';
-              break;
-            case 'opacity':
-              propName = 'opacity';
-              break;
-            case 'borderRadius':
-              propName = 'borderRadius';
-              break;
-            case 'borderColor':
-              propName = 'borderColor';
-              break;
-            case 'shadow':
-              propName = 'shadow';
-              break;
-            case 'breakpoint':
-              propName = 'breakpoint';
-              break;
-            case 'icon':
-              propName = 'icon';
-              break;
-            default:
-              propName = 'others';
-          }
-
-          if (!result[propName]) {
-            result[propName] = [];
-          }
-          (result[propName] as Token[]).push(tokenObject);
-        } else if (value && typeof value === 'object') {
-          traverse(value, [...path, key]);
-        }
-      });
-    };
-
-    traverse(w3cTokens);
-    return result;
-  };
-
-  const handleLoadW3CExample = () => {
-    // W3Cサンプルデータをロード
-    clearTokensFromStorage();
-    const convertedTokens = convertW3CTokensToTokenData(w3cSampleTokens);
-    setTokens(convertedTokens);
-    setShowExampleData(true);
-    setSelectedToken(null);
-    setError(null);
-    // サンプルデータ読み込み後に保存
-    setTimeout(() => saveTokensToStorage(convertedTokens), 0);
-  };
 
   const handleForceRefresh = () => {
     // 全データをクリアして完全にリセット
@@ -593,9 +489,11 @@ function App() {
 
   const flattenedTokens = React.useMemo(() => {
     try {
-      return flattenTokens(tokens);
+      const result = flattenTokens(tokens);
+      return result;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
+      console.error('flattenTokens error:', err);
       return [];
     }
   }, [tokens]);
@@ -765,18 +663,11 @@ function App() {
               {Object.keys(tokens).length === 0 && (
                 <div className="flex items-center justify-center space-x-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    onClick={handleLoadW3CExample}
+                    onClick={handleLoadExample}
                     className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                   >
                     <Palette className="w-4 h-4 mr-2" />
-                    W3C形式サンプル
-                  </button>
-                  <button
-                    onClick={handleLoadExample}
-                    className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Array形式サンプル
+                    Figmaサンプルデータをロード
                   </button>
                 </div>
               )}
@@ -786,14 +677,14 @@ function App() {
                   <div className="flex items-center space-x-2">
                     <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-700 dark:text-green-300">
-                      サンプルデータを表示中
+                      Figmaサンプルデータを表示中
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={handleLoadExample}
                       className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 underline"
-                      title="最新のサンプルデータを再読み込み"
+                      title="最新のFigmaサンプルデータを再読み込み"
                     >
                       再読み込み
                     </button>

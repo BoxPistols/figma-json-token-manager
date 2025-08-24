@@ -1,9 +1,23 @@
 {
-  "name": "json-token-manager",
-  "description": "A simple JSON token manager for managing tokens in a JSON file.",
+  "name": "figma-design-token-manager",
+  "description": "W3C Design Tokens standard compliant manager with full Figma Design Tokens Manager plugin compatibility",
   "author": "boxpistols",
+  "keywords": [
+    "figma",
+    "design-tokens",
+    "w3c",
+    "design-system",
+    "token-management",
+    "react",
+    "typescript"
+  ],
+  "homepage": "https://github.com/boxpistols/figma-json-token-manager",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boxpistols/figma-json-token-manager.git"
+  },
   "private": false,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

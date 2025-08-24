@@ -5,7 +5,10 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
   const flattened: FlattenedToken[] = [];
 
   // Check if it's array format first
-  if (isArrayFormat(data)) {
+  const isArray = isArrayFormat(data);
+  console.log('Data format check - isArrayFormat:', isArray);
+  
+  if (isArray) {
     // Handle array format directly (colors, typography, spacing, etc.)
     Object.entries(data).forEach(([type, tokens]) => {
       if (Array.isArray(tokens)) {
@@ -62,6 +65,7 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
     });
   } else {
     // Handle W3C format directly (Figma Design Tokens Manager format)
+    console.log('Entering W3C processing');
     function processToken(path: string[], token: DesignToken | TokenGroup) {
       if ('$type' in token && '$value' in token) {
         // Keep typography values as objects for proper display
@@ -103,21 +107,38 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
           type: token.$type,
           value: processedValue,
           description: token.$description,
-          role: undefined, // W3C標準では role は別フィールド
+          role: token.$role, // W3Cフォーマットの$roleフィールドを処理
         });
       } else {
+        // Recursively process nested objects
         Object.entries(token).forEach(([key, value]) => {
-          processToken([...path, key], value as DesignToken | TokenGroup);
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            processToken([...path, key], value as DesignToken | TokenGroup);
+          }
         });
       }
     }
 
     // Process the data directly without conversion
+    // Handle both direct W3C format and nested format (like figma: { ... })
+    console.log('Starting W3C data processing with keys:', Object.keys(data));
     Object.entries(data).forEach(([key, value]) => {
-      processToken([key], value as DesignToken | TokenGroup);
+      console.log('Processing entry:', key);
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Check if this is a direct token or needs further processing
+        if ('$type' in value && '$value' in value) {
+          // Direct token at root level
+          processToken([key], value as DesignToken);
+        } else {
+          // Nested structure, process recursively
+          console.log('Calling processToken for:', key);
+          processToken([key], value as TokenGroup);
+        }
+      }
     });
   }
 
+  console.log('Final flattened result:', flattened.length, 'tokens');
   return flattened;
 }
 

@@ -20,6 +20,7 @@ export interface DesignToken {
     | 'icon';
   $value: string | number | Record<string, unknown>;
   $description?: string;
+  $role?: string;
 }
 
 // 汎用トークン定義
@@ -67,7 +68,7 @@ export interface ColorVariations {
   [colorName: string]: ColorVariation;
 }
 
-// トークンデータ構造
+// トークンデータ構造（Array形式とW3C形式の両方をサポート）
 export interface TokenData {
   colors?: Token[];
   variations?: ColorVariations;
@@ -80,7 +81,7 @@ export interface TokenData {
   shadow?: Token[];
   breakpoint?: Token[];
   icon?: Token[];
-  [key: string]: unknown; // その他のプロパティを許可
+  [key: string]: unknown; // W3C形式のネストした構造や他のプロパティを許可
 }
 
 export interface FlattenedToken {

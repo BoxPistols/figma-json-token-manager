@@ -5,21 +5,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#2164D1',
+          $role: 'ブランドカラー',
           $description: '主要アクションやブランディングに使用する色',
         },
         dark: {
           $type: 'color',
           $value: '#1E4B99',
+          $role: 'ブランドカラー（濃）',
           $description: 'ホバー状態やアクティブ状態で使用する濃い主要色',
         },
         light: {
           $type: 'color',
           $value: '#4B7FE8',
+          $role: 'ブランドカラー（薄）',
           $description: '軽い背景やアクセントに使用する薄い主要色',
         },
         lighter: {
           $type: 'color',
           $value: '#E8F1FE',
+          $role: 'ブランドカラー（最薄）',
           $description: 'フォーカス状態やベース背景に使用する最も薄い主要色',
         },
       },
@@ -27,21 +31,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#495974',
+          $role: 'キャンセル・中性',
           $description: 'キャンセルボタンや中性アクションに使用する色',
         },
         dark: {
           $type: 'color',
           $value: '#384557',
+          $role: 'キャンセル・中性（濃）',
           $description: 'ホバー状態のキャンセルボタンに使用する濃いセカンダリ色',
         },
         light: {
           $type: 'color',
           $value: '#6B7A92',
+          $role: 'キャンセル・中性（薄）',
           $description: '軽い背景の中性要素に使用する薄いセカンダリ色',
         },
         lighter: {
           $type: 'color',
           $value: '#E8EBF0',
+          $role: 'キャンセル・中性（最薄）',
           $description: '中性要素の背景に使用する最も薄いセカンダリ色',
         },
       },
@@ -49,21 +57,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#059669',
+          $role: '成功・確認',
           $description: '成功メッセージや完了状態を表す色',
         },
         dark: {
           $type: 'color',
           $value: '#065F46',
+          $role: '成功・確認（濃）',
           $description: 'ホバー状態や強調表示に使用する濃い成功色',
         },
         light: {
           $type: 'color',
           $value: '#10B981',
+          $role: '成功・確認（薄）',
           $description: '軽い背景の成功要素に使用する薄い成功色',
         },
         lighter: {
           $type: 'color',
           $value: '#ECFDF5',
+          $role: '成功・確認（最薄）',
           $description: '成功要素の背景に使用する最も薄い成功色',
         },
       },
@@ -71,21 +83,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#D97706',
+          $role: '注意・警告',
           $description: '注意喚起や警告メッセージを表す色',
         },
         dark: {
           $type: 'color',
           $value: '#92400E',
+          $role: '注意・警告（濃）',
           $description: 'ホバー状態や強調表示に使用する濃い警告色',
         },
         light: {
           $type: 'color',
           $value: '#F59E0B',
+          $role: '注意・警告（薄）',
           $description: '軽い背景の警告要素に使用する薄い警告色',
         },
         lighter: {
           $type: 'color',
           $value: '#FEF3C7',
+          $role: '注意・警告（最薄）',
           $description: '警告要素の背景に使用する最も薄い警告色',
         },
       },
@@ -93,21 +109,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#DC2626',
+          $role: 'エラー・危険',
           $description: 'エラーメッセージや危険な操作を表す色',
         },
         dark: {
           $type: 'color',
           $value: '#991B1B',
+          $role: 'エラー・危険（濃）',
           $description: 'ホバー状態や強調表示に使用する濃いエラー色',
         },
         light: {
           $type: 'color',
           $value: '#F87171',
+          $role: 'エラー・危険（薄）',
           $description: '軽い背景のエラー要素に使用する薄いエラー色',
         },
         lighter: {
           $type: 'color',
           $value: '#FEE2E2',
+          $role: 'エラー・危険（最薄）',
           $description: 'エラー要素の背景に使用する最も薄いエラー色',
         },
       },
@@ -115,21 +135,25 @@ export const w3cSampleTokens = {
         main: {
           $type: 'color',
           $value: '#0EA5E9',
+          $role: '情報・ガイド',
           $description: '情報提供やガイダンスを表す色',
         },
         dark: {
           $type: 'color',
           $value: '#0284C7',
+          $role: '情報・ガイド（濃）',
           $description: 'ホバー状態や強調表示に使用する濃い情報色',
         },
         light: {
           $type: 'color',
           $value: '#38BDF8',
+          $role: '情報・ガイド（薄）',
           $description: '軽い背景の情報要素に使用する薄い情報色',
         },
         lighter: {
           $type: 'color',
           $value: '#E0F2FE',
+          $role: '情報・ガイド（最薄）',
           $description: '情報要素の背景に使用する最も薄い情報色',
         },
       },
@@ -137,16 +161,19 @@ export const w3cSampleTokens = {
         '50': {
           $type: 'color',
           $value: '#F9FAFB',
+          $role: '背景色',
           $description: '最も軽いページ背景やカード背景に使用',
         },
         '100': {
           $type: 'color',
           $value: '#F3F4F6',
+          $role: '軽い背景色',
           $description: 'セクション区切りや軽いコンテナ背景に使用',
         },
         '200': {
           $type: 'color',
           $value: '#E5E7EB',
+          $role: '境界線色',
           $description: '要素間の区切り線やボーダーに使用',
         },
         '300': {
@@ -157,6 +184,7 @@ export const w3cSampleTokens = {
         '400': {
           $type: 'color',
           $value: '#9CA3AF',
+          $role: 'プレースホルダー色',
           $description: '入力フィールドのヒントテキストに使用',
         },
         '500': {
@@ -167,6 +195,7 @@ export const w3cSampleTokens = {
         '600': {
           $type: 'color',
           $value: '#4B5563',
+          $role: 'テキスト色',
           $description: '通常のテキストコンテンツに使用',
         },
         '700': {
@@ -182,6 +211,7 @@ export const w3cSampleTokens = {
         '900': {
           $type: 'color',
           $value: '#111827',
+          $role: 'メインテキスト色',
           $description: '最も重要なテキストや大見出しに使用',
         },
       },
@@ -192,7 +222,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '64px',
+            fontSize: 64,
             fontWeight: 700,
             lineHeight: 1.1,
             letterSpacing: -0.025,
@@ -203,7 +233,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '48px',
+            fontSize: 48,
             fontWeight: 700,
             lineHeight: 1.15,
             letterSpacing: -0.02,
@@ -214,7 +244,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '36px',
+            fontSize: 36,
             fontWeight: 700,
             lineHeight: 1.2,
             letterSpacing: -0.015,
@@ -227,7 +257,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '32px',
+            fontSize: 32,
             fontWeight: 700,
             lineHeight: 1.25,
             letterSpacing: -0.01,
@@ -238,7 +268,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '28px',
+            fontSize: 28,
             fontWeight: 600,
             lineHeight: 1.3,
             letterSpacing: -0.008,
@@ -249,7 +279,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '24px',
+            fontSize: 24,
             fontWeight: 600,
             lineHeight: 1.35,
             letterSpacing: -0.006,
@@ -260,7 +290,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '20px',
+            fontSize: 20,
             fontWeight: 600,
             lineHeight: 1.4,
             letterSpacing: -0.004,
@@ -271,7 +301,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '18px',
+            fontSize: 18,
             fontWeight: 600,
             lineHeight: 1.45,
           },
@@ -281,7 +311,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '16px',
+            fontSize: 16,
             fontWeight: 600,
             lineHeight: 1.5,
           },
@@ -293,7 +323,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '18px',
+            fontSize: 18,
             fontWeight: 400,
             lineHeight: 1.6,
           },
@@ -303,7 +333,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '16px',
+            fontSize: 16,
             fontWeight: 400,
             lineHeight: 1.5,
           },
@@ -313,7 +343,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '14px',
+            fontSize: 14,
             fontWeight: 400,
             lineHeight: 1.4,
           },
@@ -325,7 +355,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '16px',
+            fontSize: 16,
             fontWeight: 500,
             lineHeight: 1.4,
           },
@@ -335,7 +365,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '14px',
+            fontSize: 14,
             fontWeight: 500,
             lineHeight: 1.3,
           },
@@ -345,7 +375,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '12px',
+            fontSize: 12,
             fontWeight: 500,
             lineHeight: 1.25,
           },
@@ -357,7 +387,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '12px',
+            fontSize: 12,
             fontWeight: 400,
             lineHeight: 1.3,
           },
@@ -369,7 +399,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '11px',
+            fontSize: 11,
             fontWeight: 500,
             lineHeight: 1.2,
             letterSpacing: 0.5,
@@ -383,7 +413,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '16px',
+            fontSize: 16,
             fontWeight: 600,
             lineHeight: 1.25,
           },
@@ -393,7 +423,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '14px',
+            fontSize: 14,
             fontWeight: 600,
             lineHeight: 1.2,
           },
@@ -403,7 +433,7 @@ export const w3cSampleTokens = {
           $type: 'typography',
           $value: {
             fontFamily: 'Inter',
-            fontSize: '12px',
+            fontSize: 12,
             fontWeight: 600,
             lineHeight: 1.15,
           },
@@ -415,26 +445,31 @@ export const w3cSampleTokens = {
       '0': {
         $type: 'spacing',
         $value: '0px',
+        $role: 'スペーシングなし',
         $description: 'スペーシングなし',
       },
       '1': {
         $type: 'spacing',
         $value: '4px',
+        $role: '最小スペーシング',
         $description: '最小スペーシング',
       },
       '2': {
         $type: 'spacing',
         $value: '8px',
+        $role: '小スペーシング',
         $description: '小スペーシング',
       },
       '3': {
         $type: 'spacing',
         $value: '12px',
+        $role: 'コンパクトスペーシング',
         $description: 'コンパクトスペーシング',
       },
       '4': {
         $type: 'spacing',
         $value: '16px',
+        $role: '標準スペーシング',
         $description: '標準スペーシング',
       },
       '5': {
@@ -450,6 +485,7 @@ export const w3cSampleTokens = {
       '8': {
         $type: 'spacing',
         $value: '32px',
+        $role: '特大スペーシング',
         $description: '特大スペーシング',
       },
       '10': {
@@ -477,16 +513,19 @@ export const w3cSampleTokens = {
       xs: {
         $type: 'size',
         $value: '16px',
+        $role: '最小サイズ',
         $description: '最小サイズ',
       },
       sm: {
         $type: 'size',
         $value: '24px',
+        $role: '小サイズ',
         $description: '小サイズ',
       },
       md: {
         $type: 'size',
         $value: '32px',
+        $role: '中サイズ',
         $description: '中サイズ',
       },
       lg: {
@@ -497,6 +536,7 @@ export const w3cSampleTokens = {
       xl: {
         $type: 'size',
         $value: '48px',
+        $role: '特大サイズ',
         $description: '特大サイズ',
       },
       '2xl': {
@@ -514,6 +554,7 @@ export const w3cSampleTokens = {
       none: {
         $type: 'borderRadius',
         $value: '0px',
+        $role: '角なし',
         $description: '角なし',
       },
       xs: {
@@ -524,16 +565,19 @@ export const w3cSampleTokens = {
       sm: {
         $type: 'borderRadius',
         $value: '4px',
+        $role: '小角丸',
         $description: '小角丸',
       },
       md: {
         $type: 'borderRadius',
         $value: '6px',
+        $role: '中角丸',
         $description: '中角丸',
       },
       lg: {
         $type: 'borderRadius',
         $value: '8px',
+        $role: '大角丸',
         $description: '大角丸',
       },
       xl: {
@@ -561,6 +605,7 @@ export const w3cSampleTokens = {
       '0': {
         $type: 'opacity',
         $value: '0',
+        $role: '完全透明',
         $description: '完全透明',
       },
       '5': {
@@ -596,6 +641,7 @@ export const w3cSampleTokens = {
       '50': {
         $type: 'opacity',
         $value: '0.5',
+        $role: '50% 不透明',
         $description: '50% 不透明',
       },
       '60': {
@@ -631,6 +677,7 @@ export const w3cSampleTokens = {
       '100': {
         $type: 'opacity',
         $value: '1',
+        $role: '完全不透明',
         $description: '完全不透明',
       },
     },
@@ -638,6 +685,7 @@ export const w3cSampleTokens = {
       primary: {
         $type: 'color',
         $value: '#E0E0E0',
+        $role: 'プライマリ境界線',
         $description: '主要な境界線やディバイダーに使用',
       },
       secondary: {
@@ -648,6 +696,7 @@ export const w3cSampleTokens = {
       focused: {
         $type: 'color',
         $value: '#2196F3',
+        $role: 'フォーカス境界線',
         $description: 'フォーカス状態の要素境界線',
       },
       error: {
@@ -665,11 +714,13 @@ export const w3cSampleTokens = {
       'elevation-level0': {
         $type: 'shadow',
         $value: 'none',
+        $role: 'エレベーション0',
         $description: '影なし - フラットな表面',
       },
       'elevation-level1': {
         $type: 'shadow',
         $value: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+        $role: 'エレベーション1',
         $description: 'カード、ボタンの軽い浮き上がり',
       },
       'elevation-level2': {
@@ -692,6 +743,7 @@ export const w3cSampleTokens = {
       xs: {
         $type: 'breakpoint',
         $value: '0px',
+        $role: 'XSブレークポイント',
         $description: 'モバイル（縦向き）- 0px以上',
       },
       sm: {
@@ -707,6 +759,7 @@ export const w3cSampleTokens = {
       lg: {
         $type: 'breakpoint',
         $value: '1200px',
+        $role: 'LGブレークポイント',
         $description: 'デスクトップ - 1200px以上',
       },
       xl: {
@@ -725,6 +778,7 @@ export const w3cSampleTokens = {
         sm: {
           $type: 'size',
           $value: '16px',
+          $role: 'SMアイコンサイズ',
           $description: 'ボタンやフォーム内の標準アイコン',
         },
         md: {
@@ -752,6 +806,7 @@ export const w3cSampleTokens = {
         regular: {
           $type: 'size',
           $value: '1.5px',
+          $role: '標準ストローク',
           $description: '一般的なアイコンの線の太さ',
         },
         bold: {
