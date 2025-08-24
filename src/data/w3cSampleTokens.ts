@@ -1,693 +1,764 @@
-// Figma Design Tokens Manager compatible W3C format sample data
-// This format is compatible with the "Design Tokens Manager" Figma plugin
-
 export const w3cSampleTokens = {
-  // Typography tokens following Figma Design Tokens Manager format
   figma: {
-    display: {
-      medium: {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '48px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      large: {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '72px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-    },
-    header: {
-      'head-1': {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '48px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      'head-2': {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '32px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      'head-3': {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '24px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      'head-4': {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '20px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      'head-5': {
-        $type: 'typography',
-        $description: 'figma用の見出し',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '16px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-    },
-    body: {
-      small: {
-        $type: 'typography',
-        $description: 'figma用の本文',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '12px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      normal: {
-        $type: 'typography',
-        $description: 'figma用の本文',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '16px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      large: {
-        $type: 'typography',
-        $description: 'figma用の本文',
-        $value: {
-          fontFamily: 'Inter',
-          fontSize: '20px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: 'normal',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-    },
-  },
-
-  typography: {
-    body1: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '14px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '160%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    body2: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '13px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '160%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    subtitle1: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '13px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '140%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    subtitle2: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '12px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '140%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    caption: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '12px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '140%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    overline: {
-      $type: 'typography',
-      $value: {
-        fontFamily: 'Noto Sans JP',
-        fontSize: '11px',
-        fontWeight: 400,
-        letterSpacing: '0%',
-        lineHeight: '140%',
-        textTransform: 'none',
-        textDecoration: 'none',
-      },
-    },
-    heading: {
-      h1: {
-        $type: 'typography',
-        $description:
-          "見出し / h1以外は variant='h(x)'で見出しデザインを持ったdivとなるため、マークアップ構造自体は気にしなくて良い仕組みです。\n見出しは全て太字になります",
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '22px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      h2: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '20px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      h3: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '18px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      h4: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '16px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      h5: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '14px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      h6: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '13px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-    },
-    variant: {
-      xxl: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '22px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      xl: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '20px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      lg: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '18px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      ml: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '16px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      md: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '14px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      sm: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '13px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      xs: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '12px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      xxs: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '11px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      xxxs: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '10px',
-          fontWeight: 400,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      displayLarge: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '32px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      displayMedium: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '28px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-      displaySmall: {
-        $type: 'typography',
-        $value: {
-          fontFamily: 'Noto Sans JP',
-          fontSize: '24px',
-          fontWeight: 700,
-          letterSpacing: '0%',
-          lineHeight: '140%',
-          textTransform: 'none',
-          textDecoration: 'none',
-        },
-      },
-    },
-  },
-
-  // Color tokens
-  colors: {
-    light: {
+    color: {
       primary: {
         main: {
           $type: 'color',
-          $value: '#2c1b9c',
+          $value: '#2164D1',
+          $description: '主要アクションやブランディングに使用する色',
         },
         dark: {
           $type: 'color',
-          $value: '#11114a',
+          $value: '#1E4B99',
+          $description: 'ホバー状態やアクティブ状態で使用する濃い主要色',
         },
         light: {
           $type: 'color',
-          $value: '#5451d6',
+          $value: '#4B7FE8',
+          $description: '軽い背景やアクセントに使用する薄い主要色',
         },
         lighter: {
           $type: 'color',
-          $value: '#b5b4ee',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#ffffff',
+          $value: '#E8F1FE',
+          $description: 'フォーカス状態やベース背景に使用する最も薄い主要色',
         },
       },
       secondary: {
         main: {
           $type: 'color',
-          $value: '#696881',
+          $value: '#495974',
+          $description: 'キャンセルボタンや中性アクションに使用する色',
         },
         dark: {
           $type: 'color',
-          $value: '#424242',
+          $value: '#384557',
+          $description: 'ホバー状態のキャンセルボタンに使用する濃いセカンダリ色',
         },
         light: {
           $type: 'color',
-          $value: '#757575',
+          $value: '#6B7A92',
+          $description: '軽い背景の中性要素に使用する薄いセカンダリ色',
         },
         lighter: {
           $type: 'color',
-          $value: '#fafafa',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#ffffff',
+          $value: '#E8EBF0',
+          $description: '中性要素の背景に使用する最も薄いセカンダリ色',
         },
       },
       success: {
         main: {
           $type: 'color',
-          $value: '#4caf50',
+          $value: '#059669',
+          $description: '成功メッセージや完了状態を表す色',
         },
         dark: {
           $type: 'color',
-          $value: '#3f7f42',
+          $value: '#065F46',
+          $description: 'ホバー状態や強調表示に使用する濃い成功色',
         },
         light: {
           $type: 'color',
-          $value: '#46ab4a',
+          $value: '#10B981',
+          $description: '軽い背景の成功要素に使用する薄い成功色',
         },
         lighter: {
           $type: 'color',
-          $value: '#d4e9d4',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#000000de',
+          $value: '#ECFDF5',
+          $description: '成功要素の背景に使用する最も薄い成功色',
         },
       },
       warning: {
         main: {
           $type: 'color',
-          $value: '#eb8117',
+          $value: '#D97706',
+          $description: '注意喚起や警告メッセージを表す色',
         },
         dark: {
           $type: 'color',
-          $value: '#ef6c00',
+          $value: '#92400E',
+          $description: 'ホバー状態や強調表示に使用する濃い警告色',
         },
         light: {
           $type: 'color',
-          $value: '#dd9c3c',
+          $value: '#F59E0B',
+          $description: '軽い背景の警告要素に使用する薄い警告色',
         },
         lighter: {
           $type: 'color',
-          $value: '#fff3e0',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#000000de',
+          $value: '#FEF3C7',
+          $description: '警告要素の背景に使用する最も薄い警告色',
         },
       },
       error: {
         main: {
           $type: 'color',
-          $value: '#da3737',
+          $value: '#DC2626',
+          $description: 'エラーメッセージや危険な操作を表す色',
         },
         dark: {
           $type: 'color',
-          $value: '#c63535',
+          $value: '#991B1B',
+          $description: 'ホバー状態や強調表示に使用する濃いエラー色',
         },
         light: {
           $type: 'color',
-          $value: '#dc4e4e',
+          $value: '#F87171',
+          $description: '軽い背景のエラー要素に使用する薄いエラー色',
         },
         lighter: {
           $type: 'color',
-          $value: '#ffebee',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#ffffff',
+          $value: '#FEE2E2',
+          $description: 'エラー要素の背景に使用する最も薄いエラー色',
         },
       },
       info: {
         main: {
           $type: 'color',
-          $value: '#1dafc2',
+          $value: '#0EA5E9',
+          $description: '情報提供やガイダンスを表す色',
         },
         dark: {
           $type: 'color',
-          $value: '#277781',
+          $value: '#0284C7',
+          $description: 'ホバー状態や強調表示に使用する濃い情報色',
         },
         light: {
           $type: 'color',
-          $value: '#43bfcf',
+          $value: '#38BDF8',
+          $description: '軽い背景の情報要素に使用する薄い情報色',
         },
         lighter: {
           $type: 'color',
-          $value: '#bde8ee',
-        },
-        contrastText: {
-          $type: 'color',
-          $value: '#000000de',
+          $value: '#E0F2FE',
+          $description: '情報要素の背景に使用する最も薄い情報色',
         },
       },
-      text: {
-        primary: {
+      grey: {
+        '50': {
           $type: 'color',
-          $value: '#223354',
+          $value: '#F9FAFB',
+          $description: '最も軽いページ背景やカード背景に使用',
         },
-        secondary: {
+        '100': {
           $type: 'color',
-          $value: '#4a515e',
+          $value: '#F3F4F6',
+          $description: 'セクション区切りや軽いコンテナ背景に使用',
         },
-        disabled: {
+        '200': {
           $type: 'color',
-          $value: '#9e9e9e',
+          $value: '#E5E7EB',
+          $description: '要素間の区切り線やボーダーに使用',
+        },
+        '300': {
+          $type: 'color',
+          $value: '#D1D5DB',
+          $description: '軽いボーダーやディバイダーに使用',
+        },
+        '400': {
+          $type: 'color',
+          $value: '#9CA3AF',
+          $description: '入力フィールドのヒントテキストに使用',
+        },
+        '500': {
+          $type: 'color',
+          $value: '#6B7280',
+          $description: '補助的な情報やキャプションに使用',
+        },
+        '600': {
+          $type: 'color',
+          $value: '#4B5563',
+          $description: '通常のテキストコンテンツに使用',
+        },
+        '700': {
+          $type: 'color',
+          $value: '#374151',
+          $description: '見出しや重要なテキストに使用',
+        },
+        '800': {
+          $type: 'color',
+          $value: '#1F2937',
+          $description: '主要見出しや強調テキストに使用',
+        },
+        '900': {
+          $type: 'color',
+          $value: '#111827',
+          $description: '最も重要なテキストや大見出しに使用',
         },
       },
-      background: {
+    },
+    typography: {
+      display: {
+        large: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '64px',
+            fontWeight: 700,
+            lineHeight: 1.1,
+            letterSpacing: -0.025,
+          },
+          $description: '大型ディスプレイタイトル',
+        },
+        medium: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '48px',
+            fontWeight: 700,
+            lineHeight: 1.15,
+            letterSpacing: -0.02,
+          },
+          $description: '中型ディスプレイタイトル',
+        },
+        small: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '36px',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            letterSpacing: -0.015,
+          },
+          $description: '小型ディスプレイタイトル',
+        },
+      },
+      heading: {
+        h1: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '32px',
+            fontWeight: 700,
+            lineHeight: 1.25,
+            letterSpacing: -0.01,
+          },
+          $description: 'メイン見出し H1',
+        },
+        h2: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '28px',
+            fontWeight: 600,
+            lineHeight: 1.3,
+            letterSpacing: -0.008,
+          },
+          $description: 'セクション見出し H2',
+        },
+        h3: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '24px',
+            fontWeight: 600,
+            lineHeight: 1.35,
+            letterSpacing: -0.006,
+          },
+          $description: 'サブセクション見出し H3',
+        },
+        h4: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '20px',
+            fontWeight: 600,
+            lineHeight: 1.4,
+            letterSpacing: -0.004,
+          },
+          $description: '小見出し H4',
+        },
+        h5: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '18px',
+            fontWeight: 600,
+            lineHeight: 1.45,
+          },
+          $description: 'ミニ見出し H5',
+        },
+        h6: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '16px',
+            fontWeight: 600,
+            lineHeight: 1.5,
+          },
+          $description: '最小見出し H6',
+        },
+      },
+      body: {
+        large: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '18px',
+            fontWeight: 400,
+            lineHeight: 1.6,
+          },
+          $description: '大きな本文テキスト',
+        },
+        medium: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '16px',
+            fontWeight: 400,
+            lineHeight: 1.5,
+          },
+          $description: '標準本文テキスト',
+        },
+        small: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '14px',
+            fontWeight: 400,
+            lineHeight: 1.4,
+          },
+          $description: '小さな本文テキスト',
+        },
+      },
+      label: {
+        large: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '16px',
+            fontWeight: 500,
+            lineHeight: 1.4,
+          },
+          $description: '大きなラベル',
+        },
+        medium: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '14px',
+            fontWeight: 500,
+            lineHeight: 1.3,
+          },
+          $description: '標準ラベル',
+        },
+        small: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '12px',
+            fontWeight: 500,
+            lineHeight: 1.25,
+          },
+          $description: '小さなラベル',
+        },
+      },
+      caption: {
         default: {
-          $type: 'color',
-          $value: '#ffffff',
-        },
-        paper: {
-          $type: 'color',
-          $value: '#ffffff',
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '12px',
+            fontWeight: 400,
+            lineHeight: 1.3,
+          },
+          $description: 'キャプションテキスト',
         },
       },
-      common: {
-        black: {
-          $type: 'color',
-          $value: '#323538',
+      overline: {
+        default: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '11px',
+            fontWeight: 500,
+            lineHeight: 1.2,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          },
+          $description: 'オーバーラインテキスト',
         },
-        primary: {
-          $type: 'color',
-          $value: '#33383c',
+      },
+      button: {
+        large: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '16px',
+            fontWeight: 600,
+            lineHeight: 1.25,
+          },
+          $description: '大きなボタンテキスト',
         },
-        white: {
-          $type: 'color',
-          $value: '#ffffff',
+        medium: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '14px',
+            fontWeight: 600,
+            lineHeight: 1.2,
+          },
+          $description: '標準ボタンテキスト',
+        },
+        small: {
+          $type: 'typography',
+          $value: {
+            fontFamily: 'Inter',
+            fontSize: '12px',
+            fontWeight: 600,
+            lineHeight: 1.15,
+          },
+          $description: '小さなボタンテキスト',
         },
       },
     },
-    grey: {
-      50: {
-        $type: 'color',
-        $value: '#fafafa',
+    spacing: {
+      '0': {
+        $type: 'spacing',
+        $value: '0px',
+        $description: 'スペーシングなし',
       },
-      100: {
-        $type: 'color',
-        $value: '#f5f5f5',
+      '1': {
+        $type: 'spacing',
+        $value: '4px',
+        $description: '最小スペーシング',
       },
-      200: {
-        $type: 'color',
-        $value: '#eeeeee',
+      '2': {
+        $type: 'spacing',
+        $value: '8px',
+        $description: '小スペーシング',
       },
-      300: {
-        $type: 'color',
-        $value: '#e0e0e0',
+      '3': {
+        $type: 'spacing',
+        $value: '12px',
+        $description: 'コンパクトスペーシング',
       },
-      400: {
-        $type: 'color',
-        $value: '#bdbdbd',
+      '4': {
+        $type: 'spacing',
+        $value: '16px',
+        $description: '標準スペーシング',
       },
-      500: {
-        $type: 'color',
-        $value: '#9e9e9e',
+      '5': {
+        $type: 'spacing',
+        $value: '20px',
+        $description: '中スペーシング',
       },
-      600: {
-        $type: 'color',
-        $value: '#757575',
+      '6': {
+        $type: 'spacing',
+        $value: '24px',
+        $description: '大スペーシング',
       },
-      700: {
-        $type: 'color',
-        $value: '#4e4e4e',
+      '8': {
+        $type: 'spacing',
+        $value: '32px',
+        $description: '特大スペーシング',
       },
-      800: {
-        $type: 'color',
-        $value: '#3a3a3a',
+      '10': {
+        $type: 'spacing',
+        $value: '40px',
+        $description: '超大スペーシング',
       },
-      850: {
-        $type: 'color',
-        $value: '#323232',
+      '12': {
+        $type: 'spacing',
+        $value: '48px',
+        $description: '最大スペーシング',
       },
-      900: {
-        $type: 'color',
-        $value: '#292929',
+      '16': {
+        $type: 'spacing',
+        $value: '64px',
+        $description: 'セクション間スペーシング',
+      },
+      '20': {
+        $type: 'spacing',
+        $value: '80px',
+        $description: 'ページ間スペーシング',
       },
     },
-  },
-
-  figma: {
-    text: {
+    size: {
+      xs: {
+        $type: 'size',
+        $value: '16px',
+        $description: '最小サイズ',
+      },
+      sm: {
+        $type: 'size',
+        $value: '24px',
+        $description: '小サイズ',
+      },
+      md: {
+        $type: 'size',
+        $value: '32px',
+        $description: '中サイズ',
+      },
+      lg: {
+        $type: 'size',
+        $value: '40px',
+        $description: '大サイズ',
+      },
+      xl: {
+        $type: 'size',
+        $value: '48px',
+        $description: '特大サイズ',
+      },
+      '2xl': {
+        $type: 'size',
+        $value: '56px',
+        $description: '超特大サイズ',
+      },
+      '3xl': {
+        $type: 'size',
+        $value: '64px',
+        $description: '最大サイズ',
+      },
+    },
+    borderRadius: {
+      none: {
+        $type: 'borderRadius',
+        $value: '0px',
+        $description: '角なし',
+      },
+      xs: {
+        $type: 'borderRadius',
+        $value: '2px',
+        $description: '最小角丸',
+      },
+      sm: {
+        $type: 'borderRadius',
+        $value: '4px',
+        $description: '小角丸',
+      },
+      md: {
+        $type: 'borderRadius',
+        $value: '6px',
+        $description: '中角丸',
+      },
+      lg: {
+        $type: 'borderRadius',
+        $value: '8px',
+        $description: '大角丸',
+      },
+      xl: {
+        $type: 'borderRadius',
+        $value: '12px',
+        $description: '特大角丸',
+      },
+      '2xl': {
+        $type: 'borderRadius',
+        $value: '16px',
+        $description: '超特大角丸',
+      },
+      '3xl': {
+        $type: 'borderRadius',
+        $value: '24px',
+        $description: '最大角丸',
+      },
+      full: {
+        $type: 'borderRadius',
+        $value: '9999px',
+        $description: '完全円形',
+      },
+    },
+    opacity: {
+      '0': {
+        $type: 'opacity',
+        $value: '0',
+        $description: '完全透明',
+      },
+      '5': {
+        $type: 'opacity',
+        $value: '0.05',
+        $description: '5% 不透明',
+      },
+      '10': {
+        $type: 'opacity',
+        $value: '0.1',
+        $description: '10% 不透明',
+      },
+      '20': {
+        $type: 'opacity',
+        $value: '0.2',
+        $description: '20% 不透明',
+      },
+      '25': {
+        $type: 'opacity',
+        $value: '0.25',
+        $description: '25% 不透明',
+      },
+      '30': {
+        $type: 'opacity',
+        $value: '0.3',
+        $description: '30% 不透明',
+      },
+      '40': {
+        $type: 'opacity',
+        $value: '0.4',
+        $description: '40% 不透明',
+      },
+      '50': {
+        $type: 'opacity',
+        $value: '0.5',
+        $description: '50% 不透明',
+      },
+      '60': {
+        $type: 'opacity',
+        $value: '0.6',
+        $description: '60% 不透明',
+      },
+      '70': {
+        $type: 'opacity',
+        $value: '0.7',
+        $description: '70% 不透明',
+      },
+      '75': {
+        $type: 'opacity',
+        $value: '0.75',
+        $description: '75% 不透明',
+      },
+      '80': {
+        $type: 'opacity',
+        $value: '0.8',
+        $description: '80% 不透明',
+      },
+      '90': {
+        $type: 'opacity',
+        $value: '0.9',
+        $description: '90% 不透明',
+      },
+      '95': {
+        $type: 'opacity',
+        $value: '0.95',
+        $description: '95% 不透明',
+      },
+      '100': {
+        $type: 'opacity',
+        $value: '1',
+        $description: '完全不透明',
+      },
+    },
+    borderColor: {
       primary: {
         $type: 'color',
-        $value: '#33383c',
+        $value: '#E0E0E0',
+        $description: '主要な境界線やディバイダーに使用',
       },
       secondary: {
         $type: 'color',
-        $value: '#4a535d',
+        $value: '#F5F5F5',
+        $description: '軽い境界線やカード境界に使用',
       },
-      white: {
+      focused: {
         $type: 'color',
-        $value: '#fafafa',
+        $value: '#2196F3',
+        $description: 'フォーカス状態の要素境界線',
+      },
+      error: {
+        $type: 'color',
+        $value: '#F44336',
+        $description: 'エラー状態の要素境界線',
+      },
+      disabled: {
+        $type: 'color',
+        $value: '#BDBDBD',
+        $description: '無効状態の要素境界線',
       },
     },
-    primary: {
-      $type: 'color',
-      $value: '#8540df',
-    },
-    bg: {
-      default: {
-        $type: 'color',
-        $value: '#ffffff',
+    shadow: {
+      'elevation-level0': {
+        $type: 'shadow',
+        $value: 'none',
+        $description: '影なし - フラットな表面',
       },
-      paper: {
-        $type: 'color',
-        $value: '#ffffff',
+      'elevation-level1': {
+        $type: 'shadow',
+        $value: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+        $description: 'カード、ボタンの軽い浮き上がり',
+      },
+      'elevation-level2': {
+        $type: 'shadow',
+        $value: '0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23)',
+        $description: 'アプリバー、メニューの中程度の浮き上がり',
+      },
+      'elevation-level3': {
+        $type: 'shadow',
+        $value: '0px 10px 20px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23)',
+        $description: 'ドロワー、モーダルの強い浮き上がり',
+      },
+      'elevation-level4': {
+        $type: 'shadow',
+        $value: '0px 14px 28px rgba(0, 0, 0, 0.25), 0px 10px 10px rgba(0, 0, 0, 0.22)',
+        $description: 'ナビゲーション、FABの最も強い浮き上がり',
+      },
+    },
+    breakpoint: {
+      xs: {
+        $type: 'breakpoint',
+        $value: '0px',
+        $description: 'モバイル（縦向き）- 0px以上',
+      },
+      sm: {
+        $type: 'breakpoint',
+        $value: '600px',
+        $description: 'タブレット（縦向き）- 600px以上',
+      },
+      md: {
+        $type: 'breakpoint',
+        $value: '900px',
+        $description: 'タブレット（横向き）- 900px以上',
+      },
+      lg: {
+        $type: 'breakpoint',
+        $value: '1200px',
+        $description: 'デスクトップ - 1200px以上',
+      },
+      xl: {
+        $type: 'breakpoint',
+        $value: '1536px',
+        $description: '大画面デスクトップ - 1536px以上',
+      },
+    },
+    icon: {
+      size: {
+        xs: {
+          $type: 'size',
+          $value: '12px',
+          $description: 'インライン要素内の小さなアイコン',
+        },
+        sm: {
+          $type: 'size',
+          $value: '16px',
+          $description: 'ボタンやフォーム内の標準アイコン',
+        },
+        md: {
+          $type: 'size',
+          $value: '24px',
+          $description: 'ツールバーやリスト項目のアイコン',
+        },
+        lg: {
+          $type: 'size',
+          $value: '32px',
+          $description: '見出しや重要なアクションアイコン',
+        },
+        xl: {
+          $type: 'size',
+          $value: '48px',
+          $description: 'ヒーローエリアや装飾的なアイコン',
+        },
+      },
+      stroke: {
+        thin: {
+          $type: 'size',
+          $value: '1px',
+          $description: '繊細なアイコンの線の太さ',
+        },
+        regular: {
+          $type: 'size',
+          $value: '1.5px',
+          $description: '一般的なアイコンの線の太さ',
+        },
+        bold: {
+          $type: 'size',
+          $value: '2px',
+          $description: '強調アイコンの線の太さ',
+        },
       },
     },
   },

@@ -765,18 +765,18 @@ function App() {
               {Object.keys(tokens).length === 0 && (
                 <div className="flex items-center justify-center space-x-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    onClick={handleLoadExample}
-                    className="flex items-center px-3 py-2 text-sm bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Array形式サンプル
-                  </button>
-                  <button
                     onClick={handleLoadW3CExample}
                     className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                   >
                     <Palette className="w-4 h-4 mr-2" />
                     W3C形式サンプル
+                  </button>
+                  <button
+                    onClick={handleLoadExample}
+                    className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Array形式サンプル
                   </button>
                 </div>
               )}
@@ -848,11 +848,12 @@ function App() {
                   </button>
                 )}
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                    {platformIsMac ? '⌘' : 'Ctrl'}
-                  </kbd>
-                  <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
+                  <div className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
+                    {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
+                  </div>
+                  <div className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
                     K
-                  </kbd>
+                  </div>
                 </div>
               </div>
             </div>

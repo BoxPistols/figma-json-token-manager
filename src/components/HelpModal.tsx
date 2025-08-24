@@ -56,11 +56,12 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     Figma Design Tokens Manager
                     <ExternalLink className="w-3 h-3 ml-1" />
                   </a>{' '}
-                  プラグインと完全に互換性があります。
+                  プラグイン専用アプリケーションです。
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  W3C Design Tokens
-                  標準形式をサポートし、FigmaからエクスポートされたJSONデータを直接インポート・編集・エクスポートできます。
+                  W3C Design
+                  Tokens標準形式のみをサポートし、Figmaとの完全な互換性を保証します。エクスポートは常にDesign
+                  Token Manager互換形式です。
                 </p>
               </div>
             </div>
@@ -194,10 +195,14 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 </h4>
                 <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                   <li>1. このアプリで「Export」ボタンをクリック</li>
-                  <li>2. 「W3C Design Tokens (JSON)」形式を選択</li>
-                  <li>3. エクスポートされたJSONファイルを保存</li>
-                  <li>4. Figmaで Design Tokens Manager プラグインを開く</li>
-                  <li>5. 「Import」タブでJSONファイルを選択してインポート</li>
+                  <li>
+                    2. クリップボードにコピー または JSONファイルをダウンロード
+                  </li>
+                  <li>3. Figmaで Design Tokens Manager プラグインを開く</li>
+                  <li>
+                    4. 「Import」タブでJSONを貼り付け または ファイルを選択
+                  </li>
+                  <li>5. 自動的にW3C形式として認識・インポート完了</li>
                 </ol>
               </div>
             </div>

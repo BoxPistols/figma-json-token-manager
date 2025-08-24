@@ -4,7 +4,7 @@
 
 ## プロジェクト概要
 
-これは、JSONフォーマットのデザイントークンを管理するFigmaプラグインです。[Design Tokens Manager](https://www.figma.com/community/plugin/1263743870981744253/design-tokens-manager) Figmaプラグインとの相互完成性を持つデザイントークン管理ビューワーとして機能します。
+これは、[Design Tokens Manager](https://www.figma.com/community/plugin/1263743870981744253/design-tokens-manager) Figmaプラグイン専用のデザイントークン管理アプリケーションです。W3C Design Tokens標準形式のみをサポートし、Figmaとの完全な互換性を保証します。
 
 主要な構成要素：
 
@@ -106,10 +106,12 @@ npm run preview
 
 ### トークンデータフォーマット
 
-アプリは2つのフォーマットをサポート：
+アプリはDesign Token Manager専用形式をサポート：
 
-1. **Array Format** (現在のmockTokens): `{ colors: [...], typography: [...] }`
-2. **W3C Format**: `{ "color-primary": { "$type": "color", "$value": "#000" } }`
+1. **W3C Format（推奨）**: `{ "color-primary": { "$type": "color", "$value": "#000" } }`
+2. **Array Format（内部変換用）**: `{ colors: [...], typography: [...] }`
+
+***重要：エクスポートはW3C形式のみ対応（Design Token Manager互換性保証）***
 
 ### flattenTokens処理
 
