@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FlattenedToken } from '../types';
 import { Edit3, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 
