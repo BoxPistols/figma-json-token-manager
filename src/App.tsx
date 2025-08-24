@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Palette,
   Import,
@@ -14,15 +14,7 @@ import {
   ChevronDown,
   HelpCircle,
 } from 'lucide-react';
-import { TokenData, FlattenedToken, ImportError, Token } from './types';
-import {
-  flattenTokens,
-  validateToken,
-  groupTokensByType,
-  saveTokensToStorage,
-  loadTokensFromStorage,
-  clearTokensFromStorage,
-} from './utils/tokenUtils';
+import { FlattenedToken } from './types';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { TokenGroup } from './components/TokenGroup';
 import { TokenTableView } from './components/TokenTableView';
@@ -31,492 +23,116 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { BulkDeleteMode } from './components/BulkDeleteMode';
 import { PasteJsonModal } from './components/PasteJsonModal';
 import { HelpModal } from './components/HelpModal';
-import { w3cSampleTokens } from './data/w3cSampleTokens';
+
+// Custom hooks
+import { useAppState } from './hooks/useAppState';
+import { useTokenManagement } from './hooks/useTokenManagement';
+import { useUIHelpers } from './hooks/useUIHelpers';
+import { useSearchAndFilter } from './hooks/useSearchAndFilter';
+import { useBulkDelete } from './hooks/useBulkDelete';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useEffects } from './hooks/useEffects';
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('darkMode');
-    return stored ? JSON.parse(stored) : true;
+  const {
+    // State
+    isDarkMode,
+    setIsDarkMode,
+    tokens,
+    setTokens,
+    showExampleData,
+    setShowExampleData,
+    searchQuery,
+    setSearchQuery,
+    selectedToken,
+    setSelectedToken,
+    error,
+    setError,
+    isExportModalOpen,
+    setIsExportModalOpen,
+    isPasteModalOpen,
+    setIsPasteModalOpen,
+    isHelpModalOpen,
+    setIsHelpModalOpen,
+    viewMode,
+    setViewMode,
+    isSearchFocused,
+    setIsSearchFocused,
+    confirmDialog,
+    setConfirmDialog,
+    isBulkDeleteMode,
+    setIsBulkDeleteMode,
+    showScrollToTop,
+    collapsedGroups,
+    setCollapsedGroups,
+    selectedTypes,
+    setSelectedTypes,
+    // Actions
+    scrollToTop,
+  } = useAppState();
+
+  const {
+    // State
+    groupedTokens,
+    // Actions
+    handleFileUpload,
+    handlePasteImport,
+    handleReset,
+    handleLoadExample,
+    handleForceRefresh,
+    handleClearExample,
+    handleTokenUpdate,
+    handleTokenDelete,
+    handleTokenCreate,
+  } = useTokenManagement(
+    tokens,
+    setTokens,
+    setShowExampleData,
+    setError,
+    setSelectedToken
+  );
+
+  const {
+    getGroupDisplayName,
+    toggleGroup,
+    handleAccordionControl,
+    toggleTokenTypeSelection,
+    clearTokenTypeSelection,
+    getFilteredTokensByType,
+  } = useUIHelpers();
+
+  const { filteredTokens } = useSearchAndFilter(
+    groupedTokens,
+    searchQuery,
+    selectedTypes
+  );
+
+  const { handleBulkDelete } = useBulkDelete(
+    setConfirmDialog,
+    setIsBulkDeleteMode
+  );
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    isSearchFocused,
+    setSearchQuery,
   });
 
-  const [tokens, setTokens] = useState<TokenData>(() => {
-    const storedTokens = loadTokensFromStorage();
-    return storedTokens && Object.keys(storedTokens).length > 0
-      ? storedTokens
-      : w3cSampleTokens;
-  });
+  // Effects
+  useEffects(viewMode, isBulkDeleteMode, setSelectedTypes);
 
-  const [showExampleData, setShowExampleData] = useState(() => {
-    const storedTokens = loadTokensFromStorage();
-    return !storedTokens || Object.keys(storedTokens).length === 0;
-  });
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedToken, setSelectedToken] = useState<FlattenedToken | null>(
-    null
-  );
-  const [error, setError] = useState<ImportError | null>(null);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'table'>(
-    'standard'
-  );
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-  const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
-  const [showScrollToTop, setShowScrollToTop] = useState(false);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
-    new Set()
-  );
-  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
-  // setImportMode, pasteInput, setPasteInput は未使用のため削除
-
-  // Helper function to map token type to array property name
-  const getTokenArrayKey = (tokenType: string): string => {
-    const tokenTypePlural = tokenType + 's';
-    switch (tokenTypePlural) {
-      case 'colors':
-        return 'colors';
-      case 'typographys':
-        return 'typography';
-      case 'spacings':
-        return 'spacing';
-      case 'sizes':
-        return 'size';
-      case 'opacitys':
-        return 'opacity';
-      case 'borderRadiuss':
-        return 'borderRadius';
-      default:
-        return tokenTypePlural;
-    }
-  };
-
-  // Reset filters when view mode changes
-  useEffect(() => {
-    setSelectedTypes(new Set());
-  }, [viewMode, isBulkDeleteMode]);
-
-  // フォントファミリーの動的読み込み用の副作用を追加
-  useEffect(() => {
-    if (!tokens) return;
-
-    const flattenedTokens = flattenTokens(tokens);
-    const fontFamilies = new Set<string>();
-
-    flattenedTokens.forEach((token) => {
-      if (token.type === 'typography' && typeof token.value === 'object') {
-        const typographyValue = token.value as Record<string, unknown>;
-        if (typeof typographyValue.fontFamily === 'string') {
-          fontFamilies.add(typographyValue.fontFamily);
-        }
-      }
-    });
-
-    if (fontFamilies.size > 0) {
-      const fontFamiliesList = Array.from(fontFamilies)
-        .map((f) => f.replace(/ /g, '+'))
-        .join('|');
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamiliesList)}&display=swap`;
-      document.head.appendChild(link);
-    }
-  }, [tokens]);
-
-  // キーボードショートカット for search
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Cmd+K (Mac) or Ctrl+K (Win/Linux)
-      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-        event.preventDefault();
-        const searchInput = document.getElementById(
-          'search-input'
-        ) as HTMLInputElement;
-        if (searchInput) {
-          searchInput.focus();
-          searchInput.select();
-        }
-      }
-      // Escape to clear search
-      if (event.key === 'Escape' && isSearchFocused) {
-        setSearchQuery('');
-        const searchInput = document.getElementById(
-          'search-input'
-        ) as HTMLInputElement;
-        if (searchInput) {
-          searchInput.blur();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isSearchFocused]);
-
-  // Scroll to top functionality
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollToTop(window.scrollY > 400);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    if (Object.keys(tokens).length > 0) {
-      saveTokensToStorage(tokens);
-    }
-  }, [tokens]);
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target?.result as string);
-          const validationError = validateToken(data);
-
-          if (validationError) {
-            setError({ message: validationError });
-            return;
-          }
-
-          setTokens(data);
-          setShowExampleData(false);
-          setError(null);
-          // インポート後に即座保存
-          setTimeout(() => saveTokensToStorage(data), 0);
-        } catch (err) {
-          setError({
-            message: `Error parsing JSON file: ${err instanceof Error ? err.message : String(err)}`,
-          });
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const handlePasteImport = (data: TokenData) => {
-    setTokens(data);
-    setShowExampleData(false);
-    setError(null);
-    setIsPasteModalOpen(false);
-    // インポート後に即座保存
-    setTimeout(() => saveTokensToStorage(data), 0);
+  const performTokenDelete = (token: FlattenedToken) => {
+    handleTokenDelete(token);
   };
 
   const handleExport = () => {
     setIsExportModalOpen(true);
   };
 
-  const handleReset = () => {
-    setTokens({});
-    clearTokensFromStorage();
-    setSelectedToken(null);
-    setError(null);
-    setShowExampleData(false);
+  const handlePasteImportWrapper = (data: unknown) => {
+    handlePasteImport(data as Record<string, unknown>);
+    setIsPasteModalOpen(false);
   };
-
-  const handleLoadExample = () => {
-    // localStorageをクリアして最新のw3cSampleTokensを確実にロード
-    clearTokensFromStorage();
-    setTokens(w3cSampleTokens);
-    setShowExampleData(true);
-    setSelectedToken(null);
-    setError(null);
-    // W3C形式のサンプルデータを保存
-    setTimeout(() => saveTokensToStorage(w3cSampleTokens), 0);
-  };
-
-  const handleForceRefresh = () => {
-    // 全データをクリアして完全にリセット
-    clearTokensFromStorage();
-    window.location.reload();
-  };
-
-  const toggleGroup = (groupName: string) => {
-    const newCollapsed = new Set(collapsedGroups);
-    if (newCollapsed.has(groupName)) {
-      newCollapsed.delete(groupName);
-    } else {
-      newCollapsed.add(groupName);
-    }
-    setCollapsedGroups(newCollapsed);
-  };
-
-  const getGroupDisplayName = (groupName: string) => {
-    const displayNames: Record<string, string> = {
-      color: 'Colors',
-      borderColor: 'Border Colors',
-      shadow: 'Shadows',
-      typography: 'Typography',
-      spacing: 'Spacing',
-      size: 'Sizes',
-      opacity: 'Opacity',
-      borderRadius: 'Border Radius',
-      breakpoint: 'Breakpoints',
-      icon: 'Icons',
-    };
-    return (
-      displayNames[groupName] ||
-      groupName.charAt(0).toUpperCase() + groupName.slice(1)
-    );
-  };
-
-  const handleAccordionControl = (
-    action: 'openAll' | 'closeAll' | 'selectOpen'
-  ) => {
-    const allGroupTypes = Object.keys(filteredTokens);
-
-    switch (action) {
-      case 'openAll':
-        setCollapsedGroups(new Set());
-        break;
-      case 'closeAll':
-        setCollapsedGroups(new Set(allGroupTypes));
-        break;
-      case 'selectOpen': {
-        // Keep only groups that have search matches or selected types
-        const groupsToKeep = allGroupTypes.filter(
-          (type) => selectedTypes.size === 0 || selectedTypes.has(type)
-        );
-        const groupsToCollapse = allGroupTypes.filter(
-          (type) => !groupsToKeep.includes(type)
-        );
-        setCollapsedGroups(new Set(groupsToCollapse));
-        break;
-      }
-    }
-  };
-
-  const handleClearExample = () => {
-    setTokens({});
-    setShowExampleData(false);
-    setSelectedToken(null);
-    setError(null);
-    clearTokensFromStorage();
-  };
-
-  const handleTokenUpdate = (
-    token: FlattenedToken,
-    updates: {
-      value?: string | number | object;
-      role?: string;
-      description?: string;
-    }
-  ) => {
-    setTokens((currentTokens) => {
-      const updatedTokens = { ...currentTokens };
-
-      // トークンタイプに応じて適切な配列を更新
-      const actualTokenType = getTokenArrayKey(token.type);
-
-      if (Array.isArray(updatedTokens[actualTokenType])) {
-        const tokenArray = [...updatedTokens[actualTokenType]] as Token[];
-        const tokenIndex = tokenArray.findIndex(
-          (t) => t.name === token.path.join('/')
-        );
-
-        if (tokenIndex !== -1) {
-          const updatedToken = {
-            ...tokenArray[tokenIndex],
-            ...(updates.value !== undefined && { value: updates.value }),
-            ...(updates.role !== undefined && { role: updates.role }),
-            ...(updates.description !== undefined && {
-              description: updates.description,
-            }),
-          };
-
-          // valueの型をToken型に合わせてRecord<string, unknown>に変換
-          let fixedValue = updatedToken.value;
-          if (
-            typeof fixedValue === 'object' &&
-            fixedValue !== null &&
-            !Array.isArray(fixedValue)
-          ) {
-            // すでにRecord<string, unknown>ならそのまま
-            fixedValue = fixedValue as Record<string, unknown>;
-          }
-
-          // Token型に合わせてupdatedTokenを再構築
-          // valueの型をToken型（string | number | Record<string, unknown>）に厳密に合わせる
-          let safeValue: string | number | Record<string, unknown>;
-          if (
-            typeof fixedValue === 'string' ||
-            typeof fixedValue === 'number'
-          ) {
-            safeValue = fixedValue;
-          } else if (
-            typeof fixedValue === 'object' &&
-            fixedValue !== null &&
-            !Array.isArray(fixedValue)
-          ) {
-            safeValue = fixedValue as Record<string, unknown>;
-          } else {
-            // 万が一不正な型の場合は空オブジェクトにフォールバック
-            safeValue = {};
-          }
-
-          const fixedToken: Token = {
-            ...updatedToken,
-            value: safeValue,
-          };
-
-          tokenArray[tokenIndex] = fixedToken;
-          updatedTokens[actualTokenType] = tokenArray;
-        }
-      }
-
-      return updatedTokens;
-    });
-  };
-
-  const handleTokenDelete = (tokenToDelete: FlattenedToken) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'トークンを削除',
-      message: `"${tokenToDelete.path.join('/')}" を削除してもよろしいですか？この操作は元に戻せません。`,
-      onConfirm: () => performTokenDelete(tokenToDelete),
-    });
-  };
-
-  const performTokenDelete = (token: FlattenedToken) => {
-    setTokens((currentTokens) => {
-      const updatedTokens = { ...currentTokens };
-
-      // トークンタイプに応じて適切な配列から削除
-      const actualTokenType = getTokenArrayKey(token.type);
-
-      if (Array.isArray(updatedTokens[actualTokenType])) {
-        const tokenArray = [...updatedTokens[actualTokenType]] as Token[];
-        updatedTokens[actualTokenType] = tokenArray.filter(
-          (t) => t.name !== token.path.join('/')
-        );
-      }
-
-      return updatedTokens;
-    });
-  };
-
-  const handleBulkDelete = (tokensToDelete: FlattenedToken[]) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: '一括削除確認',
-      message: `${tokensToDelete.length} 個のトークンを削除してもよろしいですか？この操作は元に戻せません。`,
-      onConfirm: () => {
-        tokensToDelete.forEach((token) => performTokenDelete(token));
-        setIsBulkDeleteMode(false);
-      },
-    });
-  };
-
-  const handleTokenCreate = (
-    tokenType: string,
-    tokenData: {
-      name: string;
-      value: string | number;
-      role?: string;
-      description?: string;
-    }
-  ) => {
-    setTokens((currentTokens) => {
-      const updatedTokens = { ...currentTokens };
-
-      // トークンタイプに応じて適切な配列に追加
-      const actualTokenType =
-        tokenType === 'colors'
-          ? 'colors'
-          : tokenType === 'typography'
-            ? 'typography'
-            : tokenType === 'spacing'
-              ? 'spacing'
-              : tokenType === 'size'
-                ? 'size'
-                : tokenType === 'opacity'
-                  ? 'opacity'
-                  : tokenType === 'borderRadius'
-                    ? 'borderRadius'
-                    : tokenType;
-
-      if (!updatedTokens[actualTokenType]) {
-        updatedTokens[actualTokenType] = [];
-      }
-
-      if (Array.isArray(updatedTokens[actualTokenType])) {
-        const tokenArray = [...updatedTokens[actualTokenType]] as Token[];
-        tokenArray.push({
-          name: tokenData.name,
-          value: tokenData.value,
-          ...(tokenData.role && { role: tokenData.role }),
-          ...(tokenData.description && { description: tokenData.description }),
-        });
-        updatedTokens[actualTokenType] = tokenArray;
-      }
-
-      return updatedTokens;
-    });
-  };
-
-  const flattenedTokens = React.useMemo(() => {
-    try {
-      const result = flattenTokens(tokens);
-      return result;
-    } catch (err) {
-      console.error('flattenTokens error:', err);
-      return [];
-    }
-  }, [tokens]);
-
-  const groupedTokens = React.useMemo(() => {
-    return groupTokensByType(flattenedTokens);
-  }, [flattenedTokens]);
-
-  const filteredTokens = React.useMemo(() => {
-    if (!searchQuery) return groupedTokens;
-
-    const filtered: Record<string, FlattenedToken[]> = {};
-    Object.entries(groupedTokens).forEach(([type, tokens]) => {
-      filtered[type] = tokens.filter(
-        (token) =>
-          token.path
-            .join('/')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          token.value
-            .toString()
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
-      );
-    });
-    return filtered;
-  }, [groupedTokens, searchQuery]);
 
   return (
     <div
@@ -758,15 +374,13 @@ function App() {
                 {Object.entries(filteredTokens).map(([type, tokens]) => (
                   <button
                     key={type}
-                    onClick={() => {
-                      const newSelected = new Set(selectedTypes);
-                      if (newSelected.has(type)) {
-                        newSelected.delete(type);
-                      } else {
-                        newSelected.add(type);
-                      }
-                      setSelectedTypes(newSelected);
-                    }}
+                    onClick={() =>
+                      toggleTokenTypeSelection(
+                        type,
+                        selectedTypes,
+                        setSelectedTypes
+                      )
+                    }
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       selectedTypes.size === 0 || selectedTypes.has(type)
                         ? 'bg-red-500 text-white'
@@ -778,7 +392,7 @@ function App() {
                 ))}
                 {selectedTypes.size > 0 && (
                   <button
-                    onClick={() => setSelectedTypes(new Set())}
+                    onClick={() => clearTokenTypeSelection(setSelectedTypes)}
                     className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Clear All
@@ -788,16 +402,13 @@ function App() {
             </div>
 
             <BulkDeleteMode
-              groupedTokens={
-                selectedTypes.size === 0
-                  ? filteredTokens
-                  : Object.fromEntries(
-                      Object.entries(filteredTokens).filter(([type]) =>
-                        selectedTypes.has(type)
-                      )
-                    )
+              groupedTokens={getFilteredTokensByType(
+                filteredTokens,
+                selectedTypes
+              )}
+              onBulkDelete={(tokensToDelete) =>
+                handleBulkDelete(tokensToDelete, performTokenDelete)
               }
-              onBulkDelete={handleBulkDelete}
               onCancel={() => setIsBulkDeleteMode(false)}
             />
           </div>
@@ -812,15 +423,13 @@ function App() {
                 {Object.entries(filteredTokens).map(([type, tokens]) => (
                   <button
                     key={type}
-                    onClick={() => {
-                      const newSelected = new Set(selectedTypes);
-                      if (newSelected.has(type)) {
-                        newSelected.delete(type);
-                      } else {
-                        newSelected.add(type);
-                      }
-                      setSelectedTypes(newSelected);
-                    }}
+                    onClick={() =>
+                      toggleTokenTypeSelection(
+                        type,
+                        selectedTypes,
+                        setSelectedTypes
+                      )
+                    }
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       selectedTypes.size === 0 || selectedTypes.has(type)
                         ? 'bg-blue-500 text-white'
@@ -832,7 +441,7 @@ function App() {
                 ))}
                 {selectedTypes.size > 0 && (
                   <button
-                    onClick={() => setSelectedTypes(new Set())}
+                    onClick={() => clearTokenTypeSelection(setSelectedTypes)}
                     className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Clear All
@@ -842,15 +451,10 @@ function App() {
             </div>
 
             <TokenTableView
-              groupedTokens={
-                selectedTypes.size === 0
-                  ? filteredTokens
-                  : Object.fromEntries(
-                      Object.entries(filteredTokens).filter(([type]) =>
-                        selectedTypes.has(type)
-                      )
-                    )
-              }
+              groupedTokens={getFilteredTokensByType(
+                filteredTokens,
+                selectedTypes
+              )}
               onTokenSelect={setSelectedToken}
               onTokenUpdate={handleTokenUpdate}
               onTokenDelete={handleTokenDelete}
@@ -867,19 +471,40 @@ function App() {
                 </h3>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleAccordionControl('openAll')}
+                    onClick={() =>
+                      handleAccordionControl(
+                        'openAll',
+                        filteredTokens,
+                        selectedTypes,
+                        setCollapsedGroups
+                      )
+                    }
                     className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
                   >
                     All Open
                   </button>
                   <button
-                    onClick={() => handleAccordionControl('closeAll')}
+                    onClick={() =>
+                      handleAccordionControl(
+                        'closeAll',
+                        filteredTokens,
+                        selectedTypes,
+                        setCollapsedGroups
+                      )
+                    }
                     className="px-3 py-1 text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
                   >
                     All Close
                   </button>
                   <button
-                    onClick={() => handleAccordionControl('selectOpen')}
+                    onClick={() =>
+                      handleAccordionControl(
+                        'selectOpen',
+                        filteredTokens,
+                        selectedTypes,
+                        setCollapsedGroups
+                      )
+                    }
                     className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                   >
                     Select Open
@@ -896,15 +521,13 @@ function App() {
                   {Object.entries(filteredTokens).map(([type, tokens]) => (
                     <button
                       key={type}
-                      onClick={() => {
-                        const newSelected = new Set(selectedTypes);
-                        if (newSelected.has(type)) {
-                          newSelected.delete(type);
-                        } else {
-                          newSelected.add(type);
-                        }
-                        setSelectedTypes(newSelected);
-                      }}
+                      onClick={() =>
+                        toggleTokenTypeSelection(
+                          type,
+                          selectedTypes,
+                          setSelectedTypes
+                        )
+                      }
                       className={`px-2 py-2 rounded-md text-xs font-medium transition-colors ${
                         selectedTypes.size === 0 || selectedTypes.has(type)
                           ? 'bg-blue-600 text-white'
@@ -916,7 +539,7 @@ function App() {
                   ))}
                   {selectedTypes.size > 0 && (
                     <button
-                      onClick={() => setSelectedTypes(new Set())}
+                      onClick={() => clearTokenTypeSelection(setSelectedTypes)}
                       className="px-2 py-2 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                     >
                       Clear All
@@ -927,18 +550,14 @@ function App() {
             </div>
 
             {Object.entries(
-              selectedTypes.size === 0
-                ? filteredTokens
-                : Object.fromEntries(
-                    Object.entries(filteredTokens).filter(([type]) =>
-                      selectedTypes.has(type)
-                    )
-                  )
+              getFilteredTokensByType(filteredTokens, selectedTypes)
             ).map(([type, tokens]) => (
               <div key={type} className="mb-6 last:mb-0">
                 {/* Accordion Header */}
                 <button
-                  onClick={() => toggleGroup(type)}
+                  onClick={() =>
+                    toggleGroup(type, collapsedGroups, setCollapsedGroups)
+                  }
                   className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors mb-4"
                 >
                   <div className="flex items-center space-x-3">
@@ -986,7 +605,7 @@ function App() {
         <PasteJsonModal
           isOpen={isPasteModalOpen}
           onClose={() => setIsPasteModalOpen(false)}
-          onImport={handlePasteImport}
+          onImport={handlePasteImportWrapper}
         />
 
         <HelpModal
