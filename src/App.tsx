@@ -848,8 +848,7 @@ function App() {
                   </button>
                 )}
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                  <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
-                    {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
+                    {platformIsMac ? '⌘' : 'Ctrl'}
                   </kbd>
                   <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded border border-gray-300 dark:border-gray-500">
                     K
