@@ -38,7 +38,8 @@ export const w3cSampleTokens = {
           $type: 'color',
           $value: '#384557',
           $role: 'キャンセル・中性（濃）',
-          $description: 'ホバー状態のキャンセルボタンに使用する濃いセカンダリ色',
+          $description:
+            'ホバー状態のキャンセルボタンに使用する濃いセカンダリ色',
         },
         light: {
           $type: 'color',
@@ -719,23 +720,27 @@ export const w3cSampleTokens = {
       },
       'elevation-level1': {
         $type: 'shadow',
-        $value: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+        $value:
+          '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
         $role: 'エレベーション1',
         $description: 'カード、ボタンの軽い浮き上がり',
       },
       'elevation-level2': {
         $type: 'shadow',
-        $value: '0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23)',
+        $value:
+          '0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23)',
         $description: 'アプリバー、メニューの中程度の浮き上がり',
       },
       'elevation-level3': {
         $type: 'shadow',
-        $value: '0px 10px 20px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23)',
+        $value:
+          '0px 10px 20px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23)',
         $description: 'ドロワー、モーダルの強い浮き上がり',
       },
       'elevation-level4': {
         $type: 'shadow',
-        $value: '0px 14px 28px rgba(0, 0, 0, 0.25), 0px 10px 10px rgba(0, 0, 0, 0.22)',
+        $value:
+          '0px 14px 28px rgba(0, 0, 0, 0.25), 0px 10px 10px rgba(0, 0, 0, 0.22)',
         $description: 'ナビゲーション、FABの最も強い浮き上がり',
       },
     },

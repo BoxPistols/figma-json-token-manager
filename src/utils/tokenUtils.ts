@@ -7,7 +7,7 @@ export function flattenTokens(data: TokenData): FlattenedToken[] {
   // Check if it's array format first
   const isArray = isArrayFormat(data);
   console.log('Data format check - isArrayFormat:', isArray);
-  
+
   if (isArray) {
     // Handle array format directly (colors, typography, spacing, etc.)
     Object.entries(data).forEach(([type, tokens]) => {

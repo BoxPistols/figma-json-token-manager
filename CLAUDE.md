@@ -111,7 +111,7 @@ npm run preview
 1. **W3C Format（推奨）**: `{ "color-primary": { "$type": "color", "$value": "#000" } }`
 2. **Array Format（内部変換用）**: `{ colors: [...], typography: [...] }`
 
-***重要：エクスポートはW3C形式のみ対応（Design Token Manager互換性保証）***
+**_重要：エクスポートはW3C形式のみ対応（Design Token Manager互換性保証）_**
 
 ### flattenTokens処理
 

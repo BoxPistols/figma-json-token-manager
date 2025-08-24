@@ -146,20 +146,24 @@ export function isArrayFormat(data: unknown): boolean {
 
   // Check for nested W3C format (like Figma Design Tokens Manager)
   // Recursively check for W3C tokens at any depth
-  function hasW3CTokensRecursive(obj: any): boolean {
+  function hasW3CTokensRecursive(obj: Record<string, unknown>): boolean {
     if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
       return false;
     }
-    
+
     // Check if current object is a W3C token
     if ('$type' in obj || '$value' in obj) {
       return true;
     }
-    
+
     // Recursively check nested objects
-    return Object.values(obj).some(value => hasW3CTokensRecursive(value));
+    return Object.values(obj).some((value) =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? hasW3CTokensRecursive(value as Record<string, unknown>)
+        : false
+    );
   }
-  
+
   const hasNestedW3CTokens = hasW3CTokensRecursive(tokenData);
 
   // If it has nested W3C tokens, it's not array format

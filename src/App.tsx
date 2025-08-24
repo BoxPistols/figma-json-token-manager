@@ -75,7 +75,6 @@ function App() {
     new Set()
   );
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
-  const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   // setImportMode, pasteInput, setPasteInput は未使用のため削除
 
   // Helper function to map token type to array property name
@@ -252,11 +251,9 @@ function App() {
     setShowExampleData(true);
     setSelectedToken(null);
     setError(null);
-    setImportErrors([]);
     // W3C形式のサンプルデータを保存
     setTimeout(() => saveTokensToStorage(w3cSampleTokens), 0);
   };
-
 
   const handleForceRefresh = () => {
     // 全データをクリアして完全にリセット
@@ -491,7 +488,6 @@ function App() {
     try {
       const result = flattenTokens(tokens);
       return result;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       console.error('flattenTokens error:', err);
       return [];
