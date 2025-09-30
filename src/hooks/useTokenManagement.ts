@@ -7,7 +7,7 @@ import {
   saveTokensToStorage,
   clearTokensFromStorage,
 } from '../utils/tokenUtils';
-import { w3cSampleTokens } from '../data/w3cSampleTokens';
+import { initialMockData } from '../data/initialMockData';
 
 export function useTokenManagement(
   tokens: TokenData,
@@ -130,12 +130,12 @@ export function useTokenManagement(
   const handleLoadExample = () => {
     // localStorageをクリアして最新のw3cSampleTokensを確実にロード
     clearTokensFromStorage();
-    setTokens(w3cSampleTokens);
+    setTokens(initialMockData);
     setShowExampleData(true);
     setSelectedToken(null);
     setError(null);
     // W3C形式のサンプルデータを保存
-    setTimeout(() => saveTokensToStorage(w3cSampleTokens), 0);
+    setTimeout(() => saveTokensToStorage(initialMockData), 0);
   };
 
   const handleForceRefresh = () => {

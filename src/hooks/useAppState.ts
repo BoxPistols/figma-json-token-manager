@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TokenData, FlattenedToken, ImportError } from '../types';
-import { w3cSampleTokens } from '../data/w3cSampleTokens';
+import { initialMockData } from '../data/initialMockData';
 import {
   saveTokensToStorage,
   loadTokensFromStorage,
@@ -16,12 +16,12 @@ export function useAppState() {
     const storedTokens = loadTokensFromStorage();
     return storedTokens && Object.keys(storedTokens).length > 0
       ? storedTokens
-      : w3cSampleTokens;
+      : initialMockData;
   });
 
   const [showExampleData, setShowExampleData] = useState(() => {
     const storedTokens = loadTokensFromStorage();
-    return !storedTokens || Object.keys(storedTokens).length === 0;
+    return false; // Don't show example data message since we have initial mock data
   });
 
   const [searchQuery, setSearchQuery] = useState('');
