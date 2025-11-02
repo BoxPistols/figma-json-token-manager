@@ -57,4 +57,4 @@ After either option, Vercel will be able to deploy the branch successfully.
 ## Technical Details
 - **jszip version**: 3.10.1
 - **Dependencies added to lockfile**: jszip, lie, pako, immediate, readable-stream, and their dependencies
-- **@types/jszip removed**: Deprecated package, jszip includes type definitions natively
+- **@types/jszip removed**: This package is unnecessary because jszip@3.10.1 includes its own TypeScript type definitions (the package shows a deprecation warning stating "This is a stub types definition. jszip provides its own type definitions, so you do not need this installed.")
