@@ -30,7 +30,29 @@ The fix has been applied directly to the `copilot/import-figma-token-support` br
 ✅ TypeScript types work correctly with jszip's built-in definitions  
 
 ## Next Steps
-The fix is complete on the `copilot/import-figma-token-support` branch. When this branch is deployed to Vercel, the installation will succeed.
+
+### To Deploy the Fix
+The fix has been applied locally to the `copilot/import-figma-token-support` branch (commit e928520). To deploy it:
+
+**Option 1: Push the Fixed Commit (Recommended)**
+```bash
+git checkout copilot/import-figma-token-support
+git push origin copilot/import-figma-token-support
+```
+
+**Option 2: Manually Apply the Fix**
+If the above doesn't work, manually apply the fix:
+```bash
+git checkout copilot/import-figma-token-support
+# Remove the unnecessary @types/jszip from package.json
+# Then run:
+pnpm install --no-frozen-lockfile
+git add package.json pnpm-lock.yaml
+git commit -m "Fix pnpm lockfile: update lockfile and remove unnecessary @types/jszip"
+git push origin copilot/import-figma-token-support
+```
+
+After either option, Vercel will be able to deploy the branch successfully.
 
 ## Technical Details
 - **jszip version**: 3.10.1
