@@ -31,7 +31,7 @@ export interface DTMFiles {
  * DTM format is identified by the presence of manifest.json
  */
 export function isDTMFormat(files: DTMFiles): boolean {
-  return 'manifest.json' in files || files['manifest.json'] !== undefined;
+  return 'manifest.json' in files;
 }
 
 /**
