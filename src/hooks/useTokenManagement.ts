@@ -7,6 +7,12 @@ import {
   saveTokensToStorage,
   clearTokensFromStorage,
 } from '../utils/tokenUtils';
+import {
+  readMultipleFiles,
+  isDTMFormat,
+  convertDTMToArrayFormat,
+  validateDTMFiles,
+} from '../utils/dtmFormatUtils';
 import { initialMockData } from '../data/initialMockData';
 
 export function useTokenManagement(
@@ -82,33 +88,83 @@ export function useTokenManagement(
     }
   }, [tokens]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target?.result as string);
-          const validationError = validateToken(data);
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) {
+      return;
+    }
 
-          if (validationError) {
-            setError({ message: validationError });
+    try {
+      // Check if we have multiple files or a single ZIP file
+      const hasMultipleFiles = fileList.length > 1;
+      const hasSingleZip =
+        fileList.length === 1 && fileList[0].name.endsWith('.zip');
+
+      if (hasMultipleFiles || hasSingleZip) {
+        // Handle DTM format (multiple files or ZIP)
+        const files = await readMultipleFiles(fileList);
+
+        // Check if it's DTM format
+        if (isDTMFormat(files)) {
+          // Validate DTM files
+          const validation = validateDTMFiles(files);
+          if (!validation.valid) {
+            setError({ message: validation.error || 'Invalid DTM format' });
             return;
           }
+
+          // Convert DTM to array format
+          const data = convertDTMToArrayFormat(files);
 
           setTokens(data);
           setShowExampleData(false);
           setError(null);
           // インポート後に即座保存
           setTimeout(() => saveTokensToStorage(data), 0);
-        } catch (err) {
+        } else {
+          // Multiple files but no manifest.json
           setError({
-            message: `Error parsing JSON file: ${err instanceof Error ? err.message : String(err)}`,
+            message:
+              'Multiple files selected but manifest.json not found. Please include manifest.json for DTM format, or select a single JSON file.',
           });
         }
-      };
-      reader.readAsText(file);
+      } else {
+        // Single JSON file - use existing logic
+        const file = fileList[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target?.result as string);
+            const validationError = validateToken(data);
+
+            if (validationError) {
+              setError({ message: validationError });
+              return;
+            }
+
+            setTokens(data);
+            setShowExampleData(false);
+            setError(null);
+            // インポート後に即座保存
+            setTimeout(() => saveTokensToStorage(data), 0);
+          } catch (err) {
+            setError({
+              message: `Error parsing JSON file: ${err instanceof Error ? err.message : String(err)}`,
+            });
+          }
+        };
+        reader.readAsText(file);
+      }
+    } catch (err) {
+      setError({
+        message: `Error processing files: ${err instanceof Error ? err.message : String(err)}`,
+      });
     }
+
+    // Reset file input to allow re-uploading the same file
+    event.target.value = '';
   };
 
   const handlePasteImport = (data: TokenData) => {
