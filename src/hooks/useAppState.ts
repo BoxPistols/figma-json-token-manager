@@ -62,7 +62,18 @@ export function useAppState() {
   // Save tokens to storage effect
   useEffect(() => {
     if (Object.keys(tokens).length > 0) {
-      saveTokensToStorage(tokens);
+      const result = saveTokensToStorage(tokens);
+
+      // Log result for debugging
+      if (!result.success) {
+        console.error('Failed to save tokens:', result.error);
+        // Could potentially show a user notification here
+      } else if (result.sizeInMB && result.sizeInMB > 4) {
+        // Warn if storage is getting large
+        console.warn(
+          `Token storage size: ${result.sizeInMB.toFixed(2)}MB - Consider reducing data`
+        );
+      }
     }
   }, [tokens]);
 
