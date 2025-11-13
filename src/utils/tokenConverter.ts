@@ -14,11 +14,20 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   // Convert array-based colors to standard format
   if (Array.isArray(data.colors)) {
     data.colors.forEach((color) => {
-      standardFormat[color.name] = {
+      const token: DesignToken = {
         $type: 'color',
         $value: color.value,
-        $description: color.role,
       };
+
+      // Preserve both role and description fields
+      if (color.role) {
+        token.$role = color.role;
+      }
+      if (color.description) {
+        token.$description = color.description;
+      }
+
+      standardFormat[color.name] = token;
     });
   }
 
@@ -42,63 +51,114 @@ export function convertToStandardFormat(data: TokenData): TokenSet {
   // Convert array-based typography to standard format
   if (Array.isArray(data.typography)) {
     data.typography.forEach((typo) => {
-      standardFormat[typo.name] = {
+      // Ensure fontSize is properly formatted (with 'px' suffix if numeric)
+      let fontSize = typo.fontSize;
+      if (typeof fontSize === 'number') {
+        fontSize = `${fontSize}px`;
+      }
+
+      const token: DesignToken = {
         $type: 'typography',
         $value: {
           fontFamily: typo.fontFamily,
-          fontSize: typo.fontSize,
+          fontSize: fontSize,
           fontWeight: typo.fontWeight,
           lineHeight: typo.lineHeight,
           letterSpacing: typo.letterSpacing,
           textTransform: typo.textTransform,
           textDecoration: typo.textDecoration,
         },
-        $description: typo.description,
       };
+
+      // Preserve both role and description fields
+      if (typo.role) {
+        token.$role = typo.role;
+      }
+      if (typo.description) {
+        token.$description = typo.description;
+      }
+
+      standardFormat[typo.name] = token;
     });
   }
 
   // Convert array-based spacing to standard format
   if (Array.isArray(data.spacing)) {
     data.spacing.forEach((space) => {
-      standardFormat[space.name] = {
+      const token: DesignToken = {
         $type: 'spacing',
         $value: space.value,
-        $description: space.role,
       };
+
+      // Preserve both role and description fields
+      if (space.role) {
+        token.$role = space.role;
+      }
+      if (space.description) {
+        token.$description = space.description;
+      }
+
+      standardFormat[space.name] = token;
     });
   }
 
   // Convert array-based size to standard format
   if (Array.isArray(data.size)) {
     data.size.forEach((size) => {
-      standardFormat[size.name] = {
+      const token: DesignToken = {
         $type: 'size',
         $value: size.value,
-        $description: size.role,
       };
+
+      // Preserve both role and description fields
+      if (size.role) {
+        token.$role = size.role;
+      }
+      if (size.description) {
+        token.$description = size.description;
+      }
+
+      standardFormat[size.name] = token;
     });
   }
 
   // Convert array-based opacity to standard format
   if (Array.isArray(data.opacity)) {
     data.opacity.forEach((opacity) => {
-      standardFormat[opacity.name] = {
+      const token: DesignToken = {
         $type: 'opacity',
         $value: opacity.value,
-        $description: opacity.role,
       };
+
+      // Preserve both role and description fields
+      if (opacity.role) {
+        token.$role = opacity.role;
+      }
+      if (opacity.description) {
+        token.$description = opacity.description;
+      }
+
+      standardFormat[opacity.name] = token;
     });
   }
 
   // Convert array-based borderRadius to standard format
   if (Array.isArray(data.borderRadius)) {
     data.borderRadius.forEach((radius) => {
-      standardFormat[radius.name] = {
+      const token: DesignToken = {
         $type: 'borderRadius',
         $value: radius.value,
-        $description: radius.role,
       };
+
+      // Preserve both role and description fields
+      if (radius.role) {
+        token.$role = radius.role;
+      }
+      if (radius.description) {
+        token.$description = radius.description;
+      }
+
+      standardFormat[radius.name] = token;
     });
   }
 
@@ -214,11 +274,20 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
       const pathParts = path.split('/');
 
       if (pathParts.length === 1) {
-        arrayFormat.colors!.push({
+        const colorToken: Token = {
           name: pathParts[0],
           value: token.$value as string,
-          role: token.$description,
-        });
+        };
+
+        // Preserve both role and description fields
+        if (token.$role) {
+          colorToken.role = token.$role;
+        }
+        if (token.$description) {
+          colorToken.description = token.$description;
+        }
+
+        arrayFormat.colors!.push(colorToken);
       } else if (pathParts.length >= 2) {
         const colorName = pathParts[0];
         const shade = pathParts[pathParts.length - 1];
@@ -257,35 +326,90 @@ export function convertToArrayFormat(data: TokenSet): TokenData {
           ? (token.$value as Record<string, unknown>)
           : {};
 
-      arrayFormat.typography!.push({
+      // Convert fontSize from string to number if needed
+      let fontSize = typographyValue.fontSize;
+      if (typeof fontSize === 'string') {
+        const numericValue = parseFloat(fontSize.replace('px', ''));
+        if (!isNaN(numericValue)) {
+          fontSize = numericValue;
+        }
+      }
+
+      const typoToken: Token = {
         name,
         ...typographyValue,
-        description: token.$description,
-      } as Token);
+        fontSize: fontSize,
+      };
+
+      // Preserve both role and description fields
+      if (token.$role) {
+        typoToken.role = token.$role;
+      }
+      if (token.$description) {
+        typoToken.description = token.$description;
+      }
+
+      arrayFormat.typography!.push(typoToken);
     } else if (token.$type === 'spacing') {
-      arrayFormat.spacing!.push({
+      const spacingToken: Token = {
         name: path,
         value: token.$value,
-        role: token.$description,
-      });
+      };
+
+      // Preserve both role and description fields
+      if (token.$role) {
+        spacingToken.role = token.$role;
+      }
+      if (token.$description) {
+        spacingToken.description = token.$description;
+      }
+
+      arrayFormat.spacing!.push(spacingToken);
     } else if (token.$type === 'size') {
-      arrayFormat.size!.push({
+      const sizeToken: Token = {
         name: path,
         value: token.$value,
-        role: token.$description,
-      });
+      };
+
+      // Preserve both role and description fields
+      if (token.$role) {
+        sizeToken.role = token.$role;
+      }
+      if (token.$description) {
+        sizeToken.description = token.$description;
+      }
+
+      arrayFormat.size!.push(sizeToken);
     } else if (token.$type === 'opacity') {
-      arrayFormat.opacity!.push({
+      const opacityToken: Token = {
         name: path,
         value: token.$value,
-        role: token.$description,
-      });
+      };
+
+      // Preserve both role and description fields
+      if (token.$role) {
+        opacityToken.role = token.$role;
+      }
+      if (token.$description) {
+        opacityToken.description = token.$description;
+      }
+
+      arrayFormat.opacity!.push(opacityToken);
     } else if (token.$type === 'borderRadius') {
-      arrayFormat.borderRadius!.push({
+      const borderRadiusToken: Token = {
         name: path,
         value: token.$value,
-        role: token.$description,
-      });
+      };
+
+      // Preserve both role and description fields
+      if (token.$role) {
+        borderRadiusToken.role = token.$role;
+      }
+      if (token.$description) {
+        borderRadiusToken.description = token.$description;
+      }
+
+      arrayFormat.borderRadius!.push(borderRadiusToken);
     }
   });
 

@@ -248,29 +248,149 @@ export function groupTokensByType(
 
 // Local Storage Functions
 const STORAGE_KEY = 'design-tokens-state';
+const MAX_STORAGE_SIZE_MB = 5; // Maximum recommended size in MB
 
-export function saveTokensToStorage(tokens: TokenData) {
+export interface StorageResult {
+  success: boolean;
+  error?: string;
+  sizeInMB?: number;
+}
+
+export function saveTokensToStorage(
+  tokens: TokenData
+): StorageResult {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
+    const jsonString = JSON.stringify(tokens);
+
+    // Check data size
+    const sizeInBytes = new Blob([jsonString]).size;
+    const sizeInMB = sizeInBytes / (1024 * 1024);
+
+    // Warn if approaching or exceeding size limit
+    if (sizeInMB > MAX_STORAGE_SIZE_MB) {
+      const errorMsg = `Token data size (${sizeInMB.toFixed(2)}MB) exceeds recommended limit of ${MAX_STORAGE_SIZE_MB}MB. Data may not be saved reliably.`;
+      console.error(errorMsg);
+      return {
+        success: false,
+        error: errorMsg,
+        sizeInMB,
+      };
+    }
+
+    // Log warning if size is close to limit
+    if (sizeInMB > MAX_STORAGE_SIZE_MB * 0.8) {
+      console.warn(
+        `Token data size (${sizeInMB.toFixed(2)}MB) is approaching the ${MAX_STORAGE_SIZE_MB}MB limit.`
+      );
+    }
+
+    localStorage.setItem(STORAGE_KEY, jsonString);
+    return {
+      success: true,
+      sizeInMB,
+    };
   } catch (error) {
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : 'Unknown error saving to localStorage';
+
+    // Check for quota exceeded error
+    if (
+      error instanceof DOMException &&
+      (error.name === 'QuotaExceededError' ||
+        error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+    ) {
+      console.error(
+        'localStorage quota exceeded. Please reduce the number of tokens or clear browser storage.'
+      );
+      return {
+        success: false,
+        error: 'Storage quota exceeded',
+      };
+    }
+
     console.error('Error saving tokens to localStorage:', error);
+    return {
+      success: false,
+      error: errorMsg,
+    };
   }
 }
 
 export function loadTokensFromStorage(): TokenData | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) {
+      return null;
+    }
+
+    // Validate JSON structure before parsing
+    const parsed = JSON.parse(stored);
+
+    // Basic validation - check if it's an object
+    if (typeof parsed !== 'object' || parsed === null) {
+      console.error('Invalid token data format in localStorage');
+      return null;
+    }
+
+    return parsed;
   } catch (error) {
     console.error('Error loading tokens from localStorage:', error);
+
+    // If parsing fails, clear corrupted data
+    if (error instanceof SyntaxError) {
+      console.warn('Corrupted localStorage data detected. Clearing...');
+      clearTokensFromStorage();
+    }
+
     return null;
   }
 }
 
-export function clearTokensFromStorage() {
+export function clearTokensFromStorage(): StorageResult {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    return {
+      success: true,
+    };
   } catch (error) {
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : 'Unknown error clearing localStorage';
     console.error('Error clearing tokens from localStorage:', error);
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
+}
+
+// Get storage usage information
+export function getStorageInfo(): {
+  sizeInMB: number;
+  percentUsed: number;
+} | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return {
+        sizeInMB: 0,
+        percentUsed: 0,
+      };
+    }
+
+    const sizeInBytes = new Blob([stored]).size;
+    const sizeInMB = sizeInBytes / (1024 * 1024);
+    const percentUsed = (sizeInMB / MAX_STORAGE_SIZE_MB) * 100;
+
+    return {
+      sizeInMB,
+      percentUsed,
+    };
+  } catch (error) {
+    console.error('Error getting storage info:', error);
+    return null;
   }
 }
