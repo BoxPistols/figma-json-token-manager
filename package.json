@@ -23,6 +23,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "fix": "eslint . --fix && prettier --write ."
   },

@@ -1,0 +1,297 @@
+# AI Auto-Fix Rules Configuration
+# Figma JSON Token Manager プロジェクト固有の自動修正ルール
+
+version: "1.0.0"
+
+# ============================================================
+# プロジェクト情報
+# ============================================================
+project:
+  name: "Figma JSON Token Manager"
+  type: "frontend"
+  primary_framework: "react"
+  description: "W3Cデザイントークン仕様準拠のFigmaプラグイン"
+
+# ============================================================
+# 自動修正のポリシー
+# ============================================================
+policies:
+  # 自動修正を即座に適用するもの
+  auto_fix_immediate:
+    - lint_errors
+    - prettier_formatting
+    - simple_type_errors
+    - import_sorting
+    - unused_imports
+    - missing_semicolons
+
+  # AI判断で修正するもの
+  auto_fix_with_ai:
+    - complex_type_errors
+    - build_errors
+    - test_failures
+    - merge_conflicts
+
+  # 必ずIssue化するもの
+  create_issue_always:
+    - breaking_changes
+    - security_vulnerabilities
+    - performance_degradation
+    - figma_api_changes
+
+  # Gemini Priority Highは常に対応
+  gemini_high_priority: true
+
+# ============================================================
+# TypeScript ルール
+# ============================================================
+typescript:
+  strict_mode: true
+
+  # any型の扱い
+  any_type:
+    auto_fix: true
+    replacement: "unknown"
+
+  # 型推論
+  type_inference:
+    prefer_explicit_return_types: true
+    prefer_interface_over_type: true
+
+  # null/undefined チェック
+  null_check:
+    enforce_strict_null_checks: true
+    use_optional_chaining: true
+
+  # 推奨パターン
+  patterns:
+    - pattern: "import type { ... }"
+      description: "型インポートは明示的に"
+    - pattern: "satisfies"
+      description: "型アサーションよりsatisfiesを優先"
+
+# ============================================================
+# React ルール
+# ============================================================
+react:
+  # コンポーネントパターン
+  component_style: "function"
+
+  # Hooks使用
+  hooks:
+    enforce_rules_of_hooks: true
+    prefer_custom_hooks: true
+
+  # Props型定義
+  props:
+    require_prop_types: true
+    use_interface: true
+    require_default_props: false
+
+  # ファイル構成
+  file_structure:
+    component_folder: false
+    index_file: false
+
+  # 推奨パターン
+  patterns:
+    - pattern: "export default function ComponentName"
+      description: "デフォルトエクスポートの関数コンポーネント"
+    - pattern: "React.FC は使わない"
+      description: "明示的な型定義を優先"
+
+# ============================================================
+# Tailwind CSS ルール
+# ============================================================
+tailwind:
+  version: "3+"
+
+  # 使用方針
+  usage:
+    prefer_for_layout: true
+    prefer_for_spacing: true
+    prefer_for_colors: true
+
+  # クラス順序
+  class_order:
+    enforce: true
+    use_prettier_plugin: true
+
+  # ダークモード
+  dark_mode:
+    strategy: "class"
+    use_dark_prefix: true
+
+# ============================================================
+# Import ルール
+# ============================================================
+imports:
+  # 順序
+  order:
+    - "react"
+    - "external"
+    - "internal"
+    - "relative"
+    - "types"
+    - "styles"
+
+  # 推奨事項
+  recommendations:
+    use_absolute_imports: false
+    avoid_index_imports: false
+
+# ============================================================
+# Lint/Format ルール
+# ============================================================
+lint:
+  eslint:
+    extends:
+      - "eslint:recommended"
+      - "plugin:@typescript-eslint/recommended"
+      - "plugin:react-hooks/recommended"
+
+  prettier:
+    enabled: true
+    config:
+      semi: true
+      singleQuote: true
+      trailingComma: "es5"
+      tabWidth: 2
+      printWidth: 100
+
+# ============================================================
+# デザイントークン固有ルール
+# ============================================================
+design_tokens:
+  # W3C仕様準拠
+  w3c_compliance: true
+
+  # サポートするトークンタイプ
+  supported_types:
+    - color
+    - typography
+    - spacing
+    - size
+    - opacity
+    - borderRadius
+
+  # 必須プロパティ
+  required_properties:
+    - $type
+    - $value
+
+# ============================================================
+# Figmaプラグイン固有ルール
+# ============================================================
+figma_plugin:
+  # API互換性
+  api_version: "latest"
+
+  # セキュリティ
+  security:
+    no_eval: true
+    no_dynamic_imports: true
+    validate_external_data: true
+
+# ============================================================
+# エラーハンドリング
+# ============================================================
+error_handling:
+  # try-catch必須箇所
+  required_try_catch:
+    - localStorage_access
+    - json_parsing
+    - figma_api_calls
+
+  # ログ
+  logging:
+    remove_console_log: true
+    use_proper_logger: false
+
+# ============================================================
+# AI修正の優先順位
+# ============================================================
+fix_priority:
+  critical:
+    - build_errors
+    - type_errors_blocking_build
+    - security_vulnerabilities
+
+  high:
+    - test_failures
+    - lint_errors
+    - typescript_errors
+    - gemini_high_priority
+
+  medium:
+    - code_smells
+    - performance_issues
+    - complexity_warnings
+
+  low:
+    - minor_style_issues
+    - optimization_opportunities
+
+# ============================================================
+# カスタム修正パターン
+# ============================================================
+custom_patterns:
+  # 適切な型定義パターン
+  - name: "proper_typing"
+    description: "適切な型定義"
+    pattern: |
+      interface ComponentProps {
+        title: string;
+        onClick?: () => void;
+        children?: React.ReactNode;
+      }
+
+      export default function Component({
+        title,
+        onClick,
+        children,
+      }: ComponentProps) {
+        return <div onClick={onClick}>{title}{children}</div>;
+      }
+
+  # デザイントークン型定義
+  - name: "design_token_typing"
+    description: "W3Cデザイントークン型定義"
+    pattern: |
+      interface DesignToken {
+        $type: 'color' | 'typography' | 'spacing';
+        $value: string | number | object;
+        $description?: string;
+      }
+
+# ============================================================
+# 除外設定
+# ============================================================
+exclude:
+  # 自動修正しないファイル
+  files:
+    - "**/*.config.js"
+    - "**/*.config.ts"
+    - "**/generated/**"
+    - "ui-src/**"
+
+  # 自動修正しないディレクトリ
+  directories:
+    - "node_modules"
+    - "dist"
+    - "build"
+
+# ============================================================
+# 通知設定
+# ============================================================
+notifications:
+  # 修正完了時
+  on_fix_complete:
+    pr_comment: true
+    slack: false
+    email: false
+
+  # Issue作成時
+  on_issue_created:
+    pr_comment: true
+    assignee: "repo_owner"

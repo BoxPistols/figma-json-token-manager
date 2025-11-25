@@ -1,0 +1,632 @@
+name: AI Auto Fix System
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  ai-auto-fix:
+    name: AI自動修正
+    runs-on: ubuntu-latest
+
+    steps:
+      # ============================================================
+      # Phase 1: セットアップ
+      # ============================================================
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        continue-on-error: true
+
+      # ============================================================
+      # Phase 2: 問題検出
+      # ============================================================
+      - name: Lint Check
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "## Lint Check" > lint.log
+          if npm run lint >> lint.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: TypeScript Check
+        id: typescript
+        continue-on-error: true
+        run: |
+          echo "## TypeScript Check" > ts.log
+          if npm run type-check >> ts.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Check
+        id: build
+        continue-on-error: true
+        run: |
+          echo "## Build Check" > build.log
+          if npm run build >> build.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test Check
+        id: test
+        continue-on-error: true
+        run: |
+          echo "## Test Check" > test.log
+          if grep -q '"test"' package.json; then
+            if npm test >> test.log 2>&1; then
+              echo "status=Pass" >> $GITHUB_OUTPUT
+            else
+              echo "status=Fail" >> $GITHUB_OUTPUT
+              echo "has_errors=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=Skip" >> $GITHUB_OUTPUT
+            echo "No tests" > test.log
+          fi
+
+      - name: Conflict Check
+        id: conflict
+        continue-on-error: true
+        run: |
+          echo "## Conflict Check" > conflict.log
+          git fetch origin ${{ github.base_ref }}
+          BASE_SHA=$(git merge-base HEAD origin/${{ github.base_ref }})
+
+          if git merge-tree $BASE_SHA HEAD origin/${{ github.base_ref }} | grep -q '<<<<<<<'; then
+            echo "status=Conflicts" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+            git merge-tree $BASE_SHA HEAD origin/${{ github.base_ref }} >> conflict.log
+          else
+            echo "status=No Conflicts" >> $GITHUB_OUTPUT
+            echo "No conflicts detected" > conflict.log
+          fi
+
+      - name: Gemini Review Check
+        id: gemini
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let hasHighPriority = false;
+            let allComments = '';
+
+            try {
+              const reviews = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+
+              const comments = await github.rest.pulls.listReviewComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+
+              const geminiReviews = reviews.data
+                .filter(r => r.user.login.toLowerCase().includes('gemini') ||
+                            r.body.toLowerCase().includes('gemini'))
+                .map(r => {
+                  if (/priority:?\s*high/i.test(r.body)) {
+                    hasHighPriority = true;
+                  }
+                  return `### Review by ${r.user.login}\n${r.body}`;
+                })
+                .join('\n\n---\n\n');
+
+              const geminiComments = comments.data
+                .filter(c => c.user.login.toLowerCase().includes('gemini'))
+                .map(c => {
+                  if (/priority:?\s*high/i.test(c.body)) {
+                    hasHighPriority = true;
+                  }
+                  return `**File**: ${c.path}\n**Line**: ${c.line}\n\n${c.body}`;
+                })
+                .join('\n\n---\n\n');
+
+              allComments = [geminiReviews, geminiComments].filter(Boolean).join('\n\n========\n\n');
+
+              if (allComments) {
+                fs.writeFileSync('gemini_review.txt', allComments);
+                core.setOutput('status', hasHighPriority ? 'High Priority' : 'Has Comments');
+                core.setOutput('has_errors', hasHighPriority ? 'true' : 'false');
+                core.setOutput('has_comments', 'true');
+              } else {
+                fs.writeFileSync('gemini_review.txt', 'No Gemini reviews found');
+                core.setOutput('status', 'No Reviews');
+                core.setOutput('has_comments', 'false');
+              }
+
+            } catch (error) {
+              console.log('Error fetching Gemini reviews:', error.message);
+              fs.writeFileSync('gemini_review.txt', 'Error fetching reviews');
+              core.setOutput('status', 'Error');
+            }
+
+      # ============================================================
+      # Phase 3: 簡単な自動修正（Lint/Format）
+      # ============================================================
+      - name: Auto-fix Lint & Format
+        id: simple-fix
+        if: steps.lint.outputs.has_errors == 'true'
+        run: |
+          echo "Lint/Format自動修正中..."
+
+          npm run lint:fix || true
+          npm run format || true
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "Auto-fix: Lint and format"
+            git push
+            echo "fixed=true" >> $GITHUB_OUTPUT
+            echo "Lint fixes committed"
+          else
+            echo "fixed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================================
+      # Phase 4: 修正が必要か判定
+      # ============================================================
+      - name: Decide if AI fix is needed
+        id: decision
+        run: |
+          NEED_FIX=false
+
+          if [ "${{ steps.typescript.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.build.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.test.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.conflict.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.gemini.outputs.has_errors }}" = "true" ]; then
+            NEED_FIX=true
+          fi
+
+          echo "need_fix=$NEED_FIX" >> $GITHUB_OUTPUT
+
+          if [ "$NEED_FIX" = "true" ]; then
+            echo "AI修正が必要です"
+          else
+            echo "すべてのチェックが通過しました"
+          fi
+
+      # ============================================================
+      # Phase 5: コンテキスト収集
+      # ============================================================
+      - name: Collect Context
+        id: context
+        if: steps.decision.outputs.need_fix == 'true'
+        run: |
+          echo "コンテキスト収集中..."
+
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+
+          cat package.json | jq '{name, version, dependencies, devDependencies, scripts}' > package_info.json
+
+          echo "## Project Structure" > project_structure.txt
+          find . -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | \
+            grep -v node_modules | grep -v .next | grep -v dist | grep -v build | \
+            head -n 100 >> project_structure.txt
+
+          echo "Context collected"
+
+      # ============================================================
+      # Phase 6: Claude AI による分析と修正
+      # ============================================================
+      - name: AI Analysis with Claude
+        id: ai-fix
+        if: steps.decision.outputs.need_fix == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "Claude AIによる分析中..."
+
+          SYSTEM_PROMPT="あなたは経験豊富な日本のフロントエンドエンジニアです。
+
+技術スタック:
+- React 18+
+- TypeScript 5+
+- Tailwind CSS
+- Vite
+- Figmaプラグイン開発
+
+修正の原則:
+1. CI/CDテスト合格が最優先目標
+2. ビルドエラーは必ず解消
+3. マージ可能な状態にする
+4. 既存のコードスタイル・設計を維持
+5. 不確実な修正は別Issue化
+6. Gemini Priority Highは優先対応
+
+必ずJSON形式で回答すること。"
+
+          USER_PROMPT="以下の問題を分析し、修正計画を立ててください。
+
+# 検出された問題
+
+## チェック結果サマリー
+- Lint: ${{ steps.lint.outputs.status }}
+- TypeScript: ${{ steps.typescript.outputs.status }}
+- Build: ${{ steps.build.outputs.status }}
+- Test: ${{ steps.test.outputs.status }}
+- Conflict: ${{ steps.conflict.outputs.status }}
+- Gemini Review: ${{ steps.gemini.outputs.status }}
+
+## プロジェクト情報
+\`\`\`json
+$(cat package_info.json)
+\`\`\`
+
+## Lint Errors
+\`\`\`
+$(cat lint.log)
+\`\`\`
+
+## TypeScript Errors
+\`\`\`
+$(cat ts.log)
+\`\`\`
+
+## Build Errors
+\`\`\`
+$(cat build.log)
+\`\`\`
+
+## Test Failures
+\`\`\`
+$(cat test.log)
+\`\`\`
+
+## Merge Conflicts
+\`\`\`
+$(cat conflict.log)
+\`\`\`
+
+## Gemini Review Comments
+$(cat gemini_review.txt)
+
+## PR Diff (最初の1500行)
+\`\`\`diff
+$(head -n 1500 pr_diff.txt)
+\`\`\`
+
+## Project Structure
+\`\`\`
+$(cat project_structure.txt)
+\`\`\`
+
+---
+
+# 指示
+
+以下のJSON形式で修正計画を作成してください:
+
+\`\`\`json
+{
+  \"analysis\": \"問題の詳細分析（日本語、200文字以内）\",
+  \"should_fix_now\": true,
+  \"fix_strategy\": \"修正戦略の説明（日本語、150文字以内）\",
+  \"fixes\": [
+    {
+      \"file\": \"src/components/Example.tsx\",
+      \"action\": \"modify\",
+      \"content\": \"修正後の完全なファイル内容（全行を含む）\",
+      \"reason\": \"修正理由（日本語、100文字以内）\",
+      \"priority\": \"high\"
+    }
+  ],
+  \"create_issues\": [
+    {
+      \"title\": \"後で対応すべきタスク\",
+      \"body\": \"詳細な説明とコンテキスト（日本語）\",
+      \"labels\": [\"technical-debt\", \"needs-review\"]
+    }
+  ],
+  \"summary_ja\": \"修正内容の要約（日本語、200文字以内）\",
+  \"risks\": \"潜在的なリスクや注意点（日本語、100文字以内）\"
+}
+\`\`\`
+
+重要な注意事項:
+- 修正後はCI/CDテストが通ること
+- ビルドが成功すること
+- 既存の設計パターンを維持すること
+- 不確実な場合はcreate_issuesで別タスク化
+- JSONのみを返すこと（説明文は不要）
+- contentは必ずファイルの完全な内容を含むこと"
+
+          cat > request.json << EOF
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 16000,
+  "system": $(echo "$SYSTEM_PROMPT" | jq -Rs .),
+  "messages": [{
+    "role": "user",
+    "content": $(echo "$USER_PROMPT" | jq -Rs .)
+  }]
+}
+EOF
+
+          echo "Sending request to Claude API..."
+          HTTP_CODE=$(curl -w "%{http_code}" -o response.json -s \
+            https://api.anthropic.com/v1/messages \
+            -H "content-type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @request.json)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API call failed with HTTP $HTTP_CODE"
+            cat response.json
+            exit 1
+          fi
+
+          cat response.json | jq -r '.content[0].text' > response_text.txt
+
+          if grep -q '```json' response_text.txt; then
+            sed -n '/```json/,/```/p' response_text.txt | sed '1d;$d' > fix_plan.json
+          elif grep -q '```' response_text.txt; then
+            sed -n '/```/,/```/p' response_text.txt | sed '1d;$d' > fix_plan.json
+          else
+            cat response_text.txt > fix_plan.json
+          fi
+
+          if ! jq empty fix_plan.json 2>/dev/null; then
+            echo "Invalid JSON response"
+            cat fix_plan.json
+            exit 1
+          fi
+
+          echo "Fix plan generated"
+          cat fix_plan.json | jq .
+
+      # ============================================================
+      # Phase 7: 修正適用
+      # ============================================================
+      - name: Apply Fixes
+        id: apply
+        if: steps.decision.outputs.need_fix == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const plan = JSON.parse(fs.readFileSync('fix_plan.json', 'utf8'));
+
+            console.log('Analysis:', plan.analysis);
+            console.log('Strategy:', plan.fix_strategy);
+
+            const results = {
+              applied: [],
+              failed: [],
+              issues_created: []
+            };
+
+            if (plan.should_fix_now && plan.fixes && plan.fixes.length > 0) {
+              console.log(`\nApplying ${plan.fixes.length} fixes...\n`);
+
+              for (const fix of plan.fixes) {
+                try {
+                  console.log(`${fix.action.toUpperCase()}: ${fix.file}`);
+                  console.log(`   Reason: ${fix.reason}`);
+                  console.log(`   Priority: ${fix.priority}`);
+
+                  const filePath = fix.file;
+
+                  if (fix.action === 'delete') {
+                    if (fs.existsSync(filePath)) {
+                      fs.unlinkSync(filePath);
+                      results.applied.push(`Deleted: ${filePath}`);
+                      console.log(`   Deleted`);
+                    }
+                  } else if (fix.action === 'create' || fix.action === 'modify') {
+                    const dir = path.dirname(filePath);
+                    if (!fs.existsSync(dir)) {
+                      fs.mkdirSync(dir, { recursive: true });
+                    }
+
+                    fs.writeFileSync(filePath, fix.content, 'utf8');
+                    const action = fix.action === 'create' ? 'Created' : 'Modified';
+                    results.applied.push(`${action}: ${filePath}`);
+                    console.log(`   ${action}`);
+                  }
+
+                } catch (error) {
+                  console.error(`   Failed: ${error.message}`);
+                  results.failed.push(`${fix.file}: ${error.message}`);
+                }
+              }
+            }
+
+            if (plan.create_issues && plan.create_issues.length > 0) {
+              console.log(`\nCreating ${plan.create_issues.length} issues...\n`);
+
+              for (const issue of plan.create_issues) {
+                try {
+                  const created = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issue.title,
+                    body: `${issue.body}\n\n---\n\n_Created by AI Auto-Fix System_\n_Related PR: #${context.issue.number}_`,
+                    labels: issue.labels || ['ai-generated', 'needs-review'],
+                  });
+
+                  results.issues_created.push(`#${created.data.number}: ${issue.title}`);
+                  console.log(`Issue #${created.data.number}: ${issue.title}`);
+
+                } catch (error) {
+                  console.error(`Failed to create issue: ${error.message}`);
+                  results.failed.push(`Issue creation failed: ${issue.title}`);
+                }
+              }
+            }
+
+            const commentSections = [
+              '## AI Auto-Fix Report\n',
+              `### 検出結果`,
+              `- Lint: ${{ steps.lint.outputs.status }}`,
+              `- TypeScript: ${{ steps.typescript.outputs.status }}`,
+              `- Build: ${{ steps.build.outputs.status }}`,
+              `- Test: ${{ steps.test.outputs.status }}`,
+              `- Conflict: ${{ steps.conflict.outputs.status }}`,
+              `- Gemini: ${{ steps.gemini.outputs.status }}`,
+              `\n### 分析結果`,
+              plan.analysis,
+              `\n### 修正戦略`,
+              plan.fix_strategy
+            ];
+
+            if (results.applied.length > 0) {
+              commentSections.push(
+                `\n### 適用した修正 (${results.applied.length}件)`,
+                results.applied.map(r => `- ${r}`).join('\n')
+              );
+            }
+
+            if (results.failed.length > 0) {
+              commentSections.push(
+                `\n### 失敗した修正 (${results.failed.length}件)`,
+                results.failed.map(r => `- ${r}`).join('\n')
+              );
+            }
+
+            if (results.issues_created.length > 0) {
+              commentSections.push(
+                `\n### 作成されたIssue (${results.issues_created.length}件)`,
+                results.issues_created.map(r => `- ${r}`).join('\n')
+              );
+            }
+
+            commentSections.push(
+              `\n### 要約`,
+              plan.summary_ja
+            );
+
+            if (plan.risks) {
+              commentSections.push(
+                `\n### 注意事項`,
+                plan.risks
+              );
+            }
+
+            commentSections.push(
+              `\n---`,
+              `_Powered by Claude Sonnet 4_`
+            );
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentSections.join('\n')
+            });
+
+            fs.writeFileSync('apply_results.json', JSON.stringify(results, null, 2));
+
+            core.setOutput('has_changes', results.applied.length > 0);
+            core.setOutput('applied_count', results.applied.length);
+            core.setOutput('failed_count', results.failed.length);
+
+      # ============================================================
+      # Phase 8: 検証とコミット
+      # ============================================================
+      - name: Verify Fixes
+        if: steps.apply.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          echo "修正を検証中..."
+          npm run lint >> verify.log 2>&1 || echo "Lint still has issues"
+          npm run type-check >> verify.log 2>&1 || echo "TypeScript still has issues"
+          npm run build >> verify.log 2>&1 || echo "Build still failing"
+
+      - name: Commit and Push
+        if: steps.apply.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+
+            COMMIT_MSG="AI Fix: Auto-resolved issues
+
+Applied: ${{ steps.apply.outputs.applied_count }} fixes
+Failed: ${{ steps.apply.outputs.failed_count }} fixes
+
+Auto-fixed by Claude Sonnet 4
+Workflow: #${{ github.run_number }}"
+
+            git commit -m "$COMMIT_MSG"
+            git push
+
+            echo "Changes committed and pushed"
+          fi
+
+      - name: Request Re-review
+        if: steps.apply.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: [context.payload.pull_request.user.login]
+              });
+              console.log('Re-review requested');
+            } catch (error) {
+              console.log('Could not request re-review:', error.message);
+            }
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## AI Auto-Fix Summary"
+          echo ""
+          echo "### Detection Phase"
+          echo "- Lint: ${{ steps.lint.outputs.status }}"
+          echo "- TypeScript: ${{ steps.typescript.outputs.status }}"
+          echo "- Build: ${{ steps.build.outputs.status }}"
+          echo "- Test: ${{ steps.test.outputs.status }}"
+          echo "- Conflict: ${{ steps.conflict.outputs.status }}"
+          echo "- Gemini: ${{ steps.gemini.outputs.status }}"
+          echo ""
+          echo "### Fix Phase"
+          echo "- Simple fixes: ${{ steps.simple-fix.outputs.fixed == 'true' && 'Applied' || 'Not needed' }}"
+          echo "- AI fixes needed: ${{ steps.decision.outputs.need_fix }}"
+          echo "- AI fixes applied: ${{ steps.apply.outputs.applied_count || '0' }}"

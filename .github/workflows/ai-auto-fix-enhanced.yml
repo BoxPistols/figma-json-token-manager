@@ -1,0 +1,741 @@
+name: AI Auto Fix System (Enhanced)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  ai-auto-fix-enhanced:
+    name: AI自動修正（拡張版）
+    runs-on: ubuntu-latest
+
+    steps:
+      # ============================================================
+      # Phase 1: セットアップ
+      # ============================================================
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        continue-on-error: true
+
+      # ============================================================
+      # Phase 2: カスタムルールとコンテキストの読み込み
+      # ============================================================
+      - name: Load Custom Rules
+        id: load-rules
+        run: |
+          echo "カスタムルールを読み込み中..."
+
+          if [ -f ".github/ai-fix-rules.yml" ]; then
+            echo "Custom rules found"
+            echo "has_custom_rules=true" >> $GITHUB_OUTPUT
+          else
+            echo "No custom rules found, using defaults"
+            echo "has_custom_rules=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -f ".github/copilot-instructions.md" ]; then
+            echo "Copilot instructions found"
+            echo "has_copilot_instructions=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Copilot instructions found"
+            echo "has_copilot_instructions=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -f ".ai/project-context.md" ]; then
+            echo "Project context found"
+            echo "has_project_context=true" >> $GITHUB_OUTPUT
+          else
+            echo "No project context found"
+            echo "has_project_context=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -f ".ai/fix-patterns.json" ]; then
+            echo "Fix patterns found"
+            echo "has_fix_patterns=true" >> $GITHUB_OUTPUT
+          else
+            echo "No fix patterns found"
+            echo "has_fix_patterns=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================================
+      # Phase 3: 問題検出
+      # ============================================================
+      - name: Lint Check
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "## Lint Check" > lint.log
+          if npm run lint >> lint.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: TypeScript Check
+        id: typescript
+        continue-on-error: true
+        run: |
+          echo "## TypeScript Check" > ts.log
+          if npm run type-check >> ts.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Check
+        id: build
+        continue-on-error: true
+        run: |
+          echo "## Build Check" > build.log
+          if npm run build >> build.log 2>&1; then
+            echo "status=Pass" >> $GITHUB_OUTPUT
+          else
+            echo "status=Fail" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test Check
+        id: test
+        continue-on-error: true
+        run: |
+          echo "## Test Check" > test.log
+          if grep -q '"test"' package.json; then
+            if npm test >> test.log 2>&1; then
+              echo "status=Pass" >> $GITHUB_OUTPUT
+            else
+              echo "status=Fail" >> $GITHUB_OUTPUT
+              echo "has_errors=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=Skip" >> $GITHUB_OUTPUT
+            echo "No tests" > test.log
+          fi
+
+      - name: Conflict Check
+        id: conflict
+        continue-on-error: true
+        run: |
+          echo "## Conflict Check" > conflict.log
+          git fetch origin ${{ github.base_ref }}
+          BASE_SHA=$(git merge-base HEAD origin/${{ github.base_ref }})
+
+          if git merge-tree $BASE_SHA HEAD origin/${{ github.base_ref }} | grep -q '<<<<<<<'; then
+            echo "status=Conflicts" >> $GITHUB_OUTPUT
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+            git merge-tree $BASE_SHA HEAD origin/${{ github.base_ref }} >> conflict.log
+          else
+            echo "status=No Conflicts" >> $GITHUB_OUTPUT
+            echo "No conflicts detected" > conflict.log
+          fi
+
+      - name: Gemini Review Check
+        id: gemini
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let hasHighPriority = false;
+            let hasSecurity = false;
+            let hasPerformance = false;
+            let allComments = '';
+
+            try {
+              const reviews = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+
+              const comments = await github.rest.pulls.listReviewComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+
+              const geminiReviews = reviews.data
+                .filter(r => r.user.login.toLowerCase().includes('gemini') ||
+                            r.body.toLowerCase().includes('gemini'))
+                .map(r => {
+                  const body = r.body.toLowerCase();
+                  if (/priority:?\s*high/i.test(r.body)) hasHighPriority = true;
+                  if (/security|vulnerable|exploit/i.test(body)) hasSecurity = true;
+                  if (/performance|slow|optimize/i.test(body)) hasPerformance = true;
+                  return `### Review by ${r.user.login}\n${r.body}`;
+                })
+                .join('\n\n---\n\n');
+
+              const geminiComments = comments.data
+                .filter(c => c.user.login.toLowerCase().includes('gemini'))
+                .map(c => {
+                  const body = c.body.toLowerCase();
+                  if (/priority:?\s*high/i.test(c.body)) hasHighPriority = true;
+                  if (/security|vulnerable|exploit/i.test(body)) hasSecurity = true;
+                  if (/performance|slow|optimize/i.test(body)) hasPerformance = true;
+                  return `**File**: ${c.path}\n**Line**: ${c.line}\n\n${c.body}`;
+                })
+                .join('\n\n---\n\n');
+
+              allComments = [geminiReviews, geminiComments].filter(Boolean).join('\n\n========\n\n');
+
+              if (allComments) {
+                fs.writeFileSync('gemini_review.txt', allComments);
+
+                let status = 'Has Comments';
+                if (hasSecurity) status = 'Security Issue';
+                else if (hasHighPriority) status = 'High Priority';
+                else if (hasPerformance) status = 'Performance';
+
+                core.setOutput('status', status);
+                core.setOutput('has_errors', hasHighPriority || hasSecurity ? 'true' : 'false');
+                core.setOutput('has_comments', 'true');
+                core.setOutput('is_security', hasSecurity ? 'true' : 'false');
+                core.setOutput('is_performance', hasPerformance ? 'true' : 'false');
+              } else {
+                fs.writeFileSync('gemini_review.txt', 'No Gemini reviews found');
+                core.setOutput('status', 'No Reviews');
+                core.setOutput('has_comments', 'false');
+              }
+
+            } catch (error) {
+              console.log('Error fetching Gemini reviews:', error.message);
+              fs.writeFileSync('gemini_review.txt', 'Error fetching reviews');
+              core.setOutput('status', 'Error');
+            }
+
+      # ============================================================
+      # Phase 4: パターンマッチング（カスタムルール適用）
+      # ============================================================
+      - name: Apply Fix Patterns
+        id: patterns
+        if: steps.load-rules.outputs.has_fix_patterns == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const patterns = JSON.parse(fs.readFileSync('.ai/fix-patterns.json', 'utf8'));
+
+            const results = {
+              auto_fixable: [],
+              needs_issue: [],
+              gemini_triggered: []
+            };
+
+            const geminiText = fs.readFileSync('gemini_review.txt', 'utf8').toLowerCase();
+
+            for (const pattern of patterns.gemini_patterns || []) {
+              const regex = new RegExp(pattern.trigger, 'i');
+              if (regex.test(geminiText)) {
+                results.gemini_triggered.push({
+                  id: pattern.id,
+                  action: pattern.action,
+                  reasoning: pattern.reasoning
+                });
+                console.log(`Gemini pattern matched: ${pattern.id}`);
+              }
+            }
+
+            fs.writeFileSync('pattern_results.json', JSON.stringify(results, null, 2));
+            core.setOutput('has_patterns', 'true');
+            console.log(`Pattern analysis complete: ${results.gemini_triggered.length} matches`);
+
+      # ============================================================
+      # Phase 5: 簡単な自動修正
+      # ============================================================
+      - name: Auto-fix Lint & Format
+        id: simple-fix
+        if: steps.lint.outputs.has_errors == 'true'
+        run: |
+          echo "Lint/Format自動修正中..."
+
+          npm run lint:fix || true
+          npm run format || true
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "Auto-fix: Lint and format"
+            git push
+            echo "fixed=true" >> $GITHUB_OUTPUT
+            echo "Lint fixes committed"
+          else
+            echo "fixed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================================
+      # Phase 6: 修正判定
+      # ============================================================
+      - name: Decide if AI fix is needed
+        id: decision
+        run: |
+          NEED_FIX=false
+
+          if [ "${{ steps.typescript.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.build.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.test.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.conflict.outputs.has_errors }}" = "true" ] || \
+             [ "${{ steps.gemini.outputs.has_errors }}" = "true" ]; then
+            NEED_FIX=true
+          fi
+
+          echo "need_fix=$NEED_FIX" >> $GITHUB_OUTPUT
+
+          if [ "$NEED_FIX" = "true" ]; then
+            echo "AI修正が必要です"
+          else
+            echo "すべてのチェックが通過しました"
+          fi
+
+      # ============================================================
+      # Phase 7: コンテキスト収集（拡張版）
+      # ============================================================
+      - name: Collect Enhanced Context
+        id: context
+        if: steps.decision.outputs.need_fix == 'true'
+        run: |
+          echo "拡張コンテキスト収集中..."
+
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+
+          cat package.json | jq '{name, version, dependencies, devDependencies, scripts}' > package_info.json
+
+          echo "## Project Structure" > project_structure.txt
+          find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) | \
+            grep -v node_modules | grep -v .next | grep -v dist | grep -v build | \
+            head -n 100 >> project_structure.txt
+
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > changed_files.txt
+
+          echo "Enhanced context collected"
+
+      # ============================================================
+      # Phase 8: Claude AI による分析と修正（拡張版）
+      # ============================================================
+      - name: AI Analysis with Enhanced Context
+        id: ai-fix
+        if: steps.decision.outputs.need_fix == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "Claude AI (拡張版) による分析中..."
+
+          CUSTOM_RULES=""
+          if [ -f ".github/ai-fix-rules.yml" ]; then
+            CUSTOM_RULES=$(cat .github/ai-fix-rules.yml)
+          fi
+
+          COPILOT_INSTRUCTIONS=""
+          if [ -f ".github/copilot-instructions.md" ]; then
+            COPILOT_INSTRUCTIONS=$(cat .github/copilot-instructions.md)
+          fi
+
+          PROJECT_CONTEXT=""
+          if [ -f ".ai/project-context.md" ]; then
+            PROJECT_CONTEXT=$(cat .ai/project-context.md)
+          fi
+
+          FIX_PATTERNS=""
+          if [ -f ".ai/fix-patterns.json" ]; then
+            FIX_PATTERNS=$(cat .ai/fix-patterns.json)
+          fi
+
+          PATTERN_RESULTS=""
+          if [ -f "pattern_results.json" ]; then
+            PATTERN_RESULTS=$(cat pattern_results.json)
+          fi
+
+          SYSTEM_PROMPT="あなたは経験豊富な日本のフロントエンドエンジニアです。
+
+# プロジェクトコンテキスト
+${PROJECT_CONTEXT}
+
+# GitHub Copilot指示
+${COPILOT_INSTRUCTIONS}
+
+# カスタム修正ルール
+${CUSTOM_RULES}
+
+# 既知の修正パターン
+${FIX_PATTERNS}
+
+修正の原則:
+1. CI/CDテスト合格が最優先
+2. カスタムルールに厳密に従う
+3. 既存のコードスタイル・アーキテクチャを維持
+4. 不確実な修正は別Issue化
+5. Gemini Priority Highとセキュリティ問題は最優先
+6. 既知のパターンがあれば優先適用
+
+必ずJSON形式で回答すること。"
+
+          USER_PROMPT="以下の問題を分析し、カスタムルールとパターンに基づいて修正計画を立ててください。
+
+# 検出された問題
+
+## チェック結果
+- Lint: ${{ steps.lint.outputs.status }}
+- TypeScript: ${{ steps.typescript.outputs.status }}
+- Build: ${{ steps.build.outputs.status }}
+- Test: ${{ steps.test.outputs.status }}
+- Conflict: ${{ steps.conflict.outputs.status }}
+- Gemini: ${{ steps.gemini.outputs.status }}
+
+## パターンマッチング結果
+\`\`\`json
+${PATTERN_RESULTS}
+\`\`\`
+
+## プロジェクト情報
+\`\`\`json
+$(cat package_info.json)
+\`\`\`
+
+## 変更されたファイル
+\`\`\`
+$(cat changed_files.txt)
+\`\`\`
+
+## エラーログ
+
+### Lint Errors
+\`\`\`
+$(cat lint.log)
+\`\`\`
+
+### TypeScript Errors
+\`\`\`
+$(cat ts.log)
+\`\`\`
+
+### Build Errors
+\`\`\`
+$(cat build.log)
+\`\`\`
+
+### Test Failures
+\`\`\`
+$(cat test.log)
+\`\`\`
+
+### Merge Conflicts
+\`\`\`
+$(cat conflict.log)
+\`\`\`
+
+### Gemini Review
+$(cat gemini_review.txt)
+
+## PR Diff (最初の1500行)
+\`\`\`diff
+$(head -n 1500 pr_diff.txt)
+\`\`\`
+
+## Project Structure
+\`\`\`
+$(cat project_structure.txt)
+\`\`\`
+
+---
+
+# 指示
+
+カスタムルールとパターンに基づいて、以下のJSON形式で修正計画を作成してください:
+
+\`\`\`json
+{
+  \"analysis\": \"問題の詳細分析（カスタムルールの適用状況含む）\",
+  \"should_fix_now\": true,
+  \"fix_strategy\": \"修正戦略（適用したパターン含む）\",
+  \"applied_patterns\": [\"pattern-id-1\", \"pattern-id-2\"],
+  \"fixes\": [
+    {
+      \"file\": \"src/components/Example.tsx\",
+      \"action\": \"modify\",
+      \"content\": \"修正後の完全なファイル内容\",
+      \"reason\": \"修正理由（適用したルール/パターン含む）\",
+      \"priority\": \"high\",
+      \"pattern_used\": \"pattern-id\"
+    }
+  ],
+  \"create_issues\": [
+    {
+      \"title\": \"タスクタイトル\",
+      \"body\": \"詳細（カスタムルール参照）\",
+      \"labels\": [\"technical-debt\"],
+      \"priority\": \"medium\"
+    }
+  ],
+  \"summary_ja\": \"修正内容の要約\",
+  \"risks\": \"潜在的リスク\",
+  \"copilot_suggestions\": \"GitHub Copilotでの追加作業提案\"
+}
+\`\`\`
+
+重要:
+- カスタムルールを厳密に遵守
+- 既知のパターンを優先適用
+- セキュリティ問題は必ずIssue化
+- Copilot連携のための提案も含める"
+
+          cat > request.json << EOF
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 16000,
+  "system": $(echo "$SYSTEM_PROMPT" | jq -Rs .),
+  "messages": [{
+    "role": "user",
+    "content": $(echo "$USER_PROMPT" | jq -Rs .)
+  }]
+}
+EOF
+
+          HTTP_CODE=$(curl -w "%{http_code}" -o response.json -s \
+            https://api.anthropic.com/v1/messages \
+            -H "content-type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @request.json)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API call failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          cat response.json | jq -r '.content[0].text' > response_text.txt
+
+          if grep -q '```json' response_text.txt; then
+            sed -n '/```json/,/```/p' response_text.txt | sed '1d;$d' > fix_plan.json
+          else
+            cat response_text.txt > fix_plan.json
+          fi
+
+          if ! jq empty fix_plan.json 2>/dev/null; then
+            echo "Invalid JSON response"
+            exit 1
+          fi
+
+          echo "Enhanced fix plan generated"
+          cat fix_plan.json | jq .
+
+      # ============================================================
+      # Phase 9-11: 修正適用、検証、コミット
+      # ============================================================
+      - name: Apply Fixes
+        id: apply
+        if: steps.decision.outputs.need_fix == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const plan = JSON.parse(fs.readFileSync('fix_plan.json', 'utf8'));
+
+            console.log('Analysis:', plan.analysis);
+            console.log('Strategy:', plan.fix_strategy);
+
+            if (plan.applied_patterns && plan.applied_patterns.length > 0) {
+              console.log('Applied patterns:', plan.applied_patterns.join(', '));
+            }
+
+            const results = {
+              applied: [],
+              failed: [],
+              issues_created: []
+            };
+
+            if (plan.should_fix_now && plan.fixes && plan.fixes.length > 0) {
+              console.log(`\nApplying ${plan.fixes.length} fixes...\n`);
+
+              for (const fix of plan.fixes) {
+                try {
+                  console.log(`${fix.action.toUpperCase()}: ${fix.file}`);
+                  console.log(`   Reason: ${fix.reason}`);
+                  console.log(`   Priority: ${fix.priority}`);
+                  if (fix.pattern_used) {
+                    console.log(`   Pattern: ${fix.pattern_used}`);
+                  }
+
+                  const filePath = fix.file;
+
+                  if (fix.action === 'delete') {
+                    if (fs.existsSync(filePath)) {
+                      fs.unlinkSync(filePath);
+                      results.applied.push(`Deleted: ${filePath}`);
+                    }
+                  } else if (fix.action === 'create' || fix.action === 'modify') {
+                    const dir = path.dirname(filePath);
+                    if (!fs.existsSync(dir)) {
+                      fs.mkdirSync(dir, { recursive: true });
+                    }
+                    fs.writeFileSync(filePath, fix.content, 'utf8');
+                    results.applied.push(`${fix.action === 'create' ? 'Created' : 'Modified'}: ${filePath}`);
+                  }
+
+                } catch (error) {
+                  console.error(`   Failed: ${error.message}`);
+                  results.failed.push(`${fix.file}: ${error.message}`);
+                }
+              }
+            }
+
+            if (plan.create_issues && plan.create_issues.length > 0) {
+              console.log(`\nCreating ${plan.create_issues.length} issues...\n`);
+
+              for (const issue of plan.create_issues) {
+                try {
+                  const created = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issue.title,
+                    body: `${issue.body}\n\n---\n\n_Created by AI Auto-Fix System (Enhanced)_\n_Related PR: #${context.issue.number}_\n_Priority: ${issue.priority || 'medium'}_`,
+                    labels: issue.labels || ['ai-generated'],
+                  });
+
+                  results.issues_created.push(`#${created.data.number}: ${issue.title}`);
+
+                } catch (error) {
+                  console.error(`Failed to create issue`);
+                  results.failed.push(`Issue: ${issue.title}`);
+                }
+              }
+            }
+
+            const sections = [
+              '## AI Auto-Fix Report (Enhanced)\n',
+              `### 検出結果`,
+              `- Lint: ${{ steps.lint.outputs.status }}`,
+              `- TypeScript: ${{ steps.typescript.outputs.status }}`,
+              `- Build: ${{ steps.build.outputs.status }}`,
+              `- Test: ${{ steps.test.outputs.status }}`,
+              `- Conflict: ${{ steps.conflict.outputs.status }}`,
+              `- Gemini: ${{ steps.gemini.outputs.status }}`,
+            ];
+
+            if (plan.applied_patterns && plan.applied_patterns.length > 0) {
+              sections.push(
+                `\n### 適用したパターン`,
+                plan.applied_patterns.map(p => `- \`${p}\``).join('\n')
+              );
+            }
+
+            sections.push(
+              `\n### 分析結果`,
+              plan.analysis,
+              `\n### 修正戦略`,
+              plan.fix_strategy
+            );
+
+            if (results.applied.length > 0) {
+              sections.push(
+                `\n### 適用した修正 (${results.applied.length}件)`,
+                results.applied.map(r => `- ${r}`).join('\n')
+              );
+            }
+
+            if (results.issues_created.length > 0) {
+              sections.push(
+                `\n### 作成されたIssue (${results.issues_created.length}件)`,
+                results.issues_created.map(r => `- ${r}`).join('\n')
+              );
+            }
+
+            sections.push(
+              `\n### 要約`,
+              plan.summary_ja
+            );
+
+            if (plan.risks) {
+              sections.push(`\n### 注意事項`, plan.risks);
+            }
+
+            if (plan.copilot_suggestions) {
+              sections.push(
+                `\n### Copilot 追加作業提案`,
+                plan.copilot_suggestions
+              );
+            }
+
+            sections.push(
+              `\n---`,
+              `_Powered by Claude Sonnet 4 with Custom Rules_`
+            );
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: sections.join('\n')
+            });
+
+            fs.writeFileSync('apply_results.json', JSON.stringify(results, null, 2));
+            core.setOutput('has_changes', results.applied.length > 0);
+
+      - name: Verify Fixes
+        if: steps.apply.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          echo "修正を検証中..."
+          npm run lint || echo "Lint issues remain"
+          npm run type-check || echo "TypeScript issues remain"
+          npm run build || echo "Build issues remain"
+
+      - name: Commit and Push
+        if: steps.apply.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "AI Fix (Enhanced): Auto-resolved issues
+
+Applied custom rules and patterns
+Modified files based on project context
+
+Auto-fixed by Claude Sonnet 4 with:
+- Custom project rules
+- Known fix patterns
+- Copilot guidelines integration
+
+Workflow: #${{ github.run_number }}"
+            git push
+            echo "Changes committed"
+          fi
+
+      - name: Request Re-review
+        if: steps.apply.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              reviewers: [context.payload.pull_request.user.login]
+            });
