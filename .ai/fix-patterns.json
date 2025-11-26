@@ -1,0 +1,324 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Fix Patterns",
+  "description": "Figma JSON Token Manager - よくある問題パターンとその修正方法の定義",
+  "version": "1.0.0",
+  "patterns": [
+    {
+      "id": "typescript-any-to-unknown",
+      "name": "any型をunknownに変換",
+      "category": "typescript",
+      "severity": "high",
+      "auto_fix": true,
+      "pattern": {
+        "regex": ":\\s*any\\b",
+        "description": "any型の使用を検出"
+      },
+      "fix": {
+        "replace": ": unknown",
+        "reasoning": "any型は型安全性を損なうため、unknownに置き換える"
+      },
+      "example": {
+        "before": "function process(data: any) { return data; }",
+        "after": "function process(data: unknown) { return data; }"
+      }
+    },
+    {
+      "id": "react-fc-removal",
+      "name": "React.FCの削除",
+      "category": "react",
+      "severity": "medium",
+      "auto_fix": true,
+      "pattern": {
+        "regex": "React\\.FC<.*?>|FC<.*?>",
+        "description": "React.FCの使用を検出"
+      },
+      "fix": {
+        "replace": "明示的なProps型定義",
+        "reasoning": "React.FCは非推奨。明示的な型定義を使用する"
+      },
+      "example": {
+        "before": "const Component: React.FC<Props> = ({ title }) => <div>{title}</div>",
+        "after": "export default function Component({ title }: Props) { return <div>{title}</div>; }"
+      }
+    },
+    {
+      "id": "console-log-removal",
+      "name": "console.logの削除",
+      "category": "cleanup",
+      "severity": "low",
+      "auto_fix": true,
+      "pattern": {
+        "regex": "console\\.log\\([^)]*\\);?",
+        "description": "console.logの使用を検出"
+      },
+      "fix": {
+        "replace": "",
+        "reasoning": "本番環境でのconsole.logは不要"
+      },
+      "example": {
+        "before": "console.log('debug:', data);",
+        "after": ""
+      }
+    },
+    {
+      "id": "import-order-fix",
+      "name": "インポート文の並び替え",
+      "category": "imports",
+      "severity": "low",
+      "auto_fix": true,
+      "pattern": {
+        "description": "インポート順序の違反を検出"
+      },
+      "fix": {
+        "replace": "正しい順序に並び替え",
+        "reasoning": "一貫したインポート順序を保つ"
+      },
+      "order": [
+        "react",
+        "external-libraries",
+        "internal-modules",
+        "relative-imports",
+        "types"
+      ],
+      "example": {
+        "before": "import { X } from 'lucide-react';\nimport { useState } from 'react';",
+        "after": "import { useState } from 'react';\nimport { X } from 'lucide-react';"
+      }
+    },
+    {
+      "id": "unused-imports-removal",
+      "name": "未使用インポートの削除",
+      "category": "cleanup",
+      "severity": "medium",
+      "auto_fix": true,
+      "pattern": {
+        "description": "使用されていないインポートを検出"
+      },
+      "fix": {
+        "replace": "",
+        "reasoning": "未使用のインポートはバンドルサイズを増やす"
+      },
+      "example": {
+        "before": "import { useState, useEffect } from 'react';\n\nfunction Component() { return <div>Test</div>; }",
+        "after": "function Component() { return <div>Test</div>; }"
+      }
+    },
+    {
+      "id": "optional-chaining-suggestion",
+      "name": "オプショナルチェーン使用の提案",
+      "category": "typescript",
+      "severity": "low",
+      "auto_fix": true,
+      "pattern": {
+        "regex": "&&.*\\.",
+        "description": "&&演算子を使った存在チェックを検出"
+      },
+      "fix": {
+        "replace": "オプショナルチェーン(?.)を使用",
+        "reasoning": "より簡潔で安全な記法"
+      },
+      "example": {
+        "before": "const name = user && user.profile && user.profile.name;",
+        "after": "const name = user?.profile?.name;"
+      }
+    },
+    {
+      "id": "null-coalescing-suggestion",
+      "name": "Null合体演算子の提案",
+      "category": "typescript",
+      "severity": "low",
+      "auto_fix": true,
+      "pattern": {
+        "regex": "\\|\\|",
+        "description": "||演算子を検出（null/undefinedチェック文脈）"
+      },
+      "fix": {
+        "replace": "Null合体演算子(??)を使用",
+        "reasoning": "falsy値ではなくnull/undefinedのみをチェック"
+      },
+      "example": {
+        "before": "const value = input || 'default';",
+        "after": "const value = input ?? 'default';"
+      }
+    },
+    {
+      "id": "dark-mode-class-missing",
+      "name": "ダークモードクラスの追加",
+      "category": "tailwind",
+      "severity": "medium",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "regex": "bg-(white|gray-\\d+)(?!.*dark:)",
+        "description": "ダークモード対応のないTailwindクラス"
+      },
+      "fix": {
+        "replace": "dark:プレフィックスを追加",
+        "reasoning": "ダークモード対応が必要"
+      },
+      "example": {
+        "before": "className=\"bg-white\"",
+        "after": "className=\"bg-white dark:bg-gray-800\""
+      }
+    },
+    {
+      "id": "design-token-type-check",
+      "name": "デザイントークン型チェック",
+      "category": "design-tokens",
+      "severity": "high",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "description": "W3C仕様に準拠しないトークン構造"
+      },
+      "fix": {
+        "replace": "$type, $valueプロパティを追加",
+        "reasoning": "W3Cデザイントークン仕様準拠が必要"
+      },
+      "example": {
+        "before": "{ \"primary\": \"#2196f3\" }",
+        "after": "{ \"primary\": { \"$type\": \"color\", \"$value\": \"#2196f3\" } }"
+      }
+    },
+    {
+      "id": "localstorage-error-handling",
+      "name": "localStorage エラーハンドリング",
+      "category": "error-handling",
+      "severity": "high",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "regex": "localStorage\\.(getItem|setItem)",
+        "description": "try-catchなしのlocalStorageアクセス"
+      },
+      "fix": {
+        "replace": "try-catchブロックで囲む",
+        "reasoning": "localStorageはプライベートモードで例外を投げる可能性がある"
+      },
+      "example": {
+        "before": "const data = localStorage.getItem('key');",
+        "after": "let data = null;\ntry {\n  data = localStorage.getItem('key');\n} catch (e) {\n  console.warn('localStorage not available');\n}"
+      }
+    },
+    {
+      "id": "json-parse-error-handling",
+      "name": "JSON.parse エラーハンドリング",
+      "category": "error-handling",
+      "severity": "high",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "regex": "JSON\\.parse\\(",
+        "description": "try-catchなしのJSON.parse"
+      },
+      "fix": {
+        "replace": "try-catchブロックで囲む",
+        "reasoning": "不正なJSONで例外が発生する可能性がある"
+      },
+      "example": {
+        "before": "const data = JSON.parse(jsonString);",
+        "after": "let data = null;\ntry {\n  data = JSON.parse(jsonString);\n} catch (e) {\n  console.error('Invalid JSON');\n}"
+      }
+    },
+    {
+      "id": "key-prop-missing",
+      "name": "keyプロパティの追加",
+      "category": "react",
+      "severity": "high",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "description": "リスト要素にkeyプロパティがない"
+      },
+      "fix": {
+        "replace": "一意なkeyプロパティを追加",
+        "reasoning": "Reactのパフォーマンスと正確性のため"
+      },
+      "example": {
+        "before": "items.map(item => <div>{item.name}</div>)",
+        "after": "items.map(item => <div key={item.id}>{item.name}</div>)"
+      }
+    },
+    {
+      "id": "accessibility-alt-text",
+      "name": "画像のalt属性追加",
+      "category": "accessibility",
+      "severity": "high",
+      "auto_fix": false,
+      "create_issue": true,
+      "pattern": {
+        "regex": "<img(?![^>]*alt=)",
+        "description": "alt属性がないimg要素を検出"
+      },
+      "fix": {
+        "replace": "適切なalt属性を追加",
+        "reasoning": "アクセシビリティのため必須"
+      },
+      "example": {
+        "before": "<img src=\"/icon.png\" />",
+        "after": "<img src=\"/icon.png\" alt=\"Icon description\" />"
+      }
+    }
+  ],
+  "gemini_patterns": [
+    {
+      "id": "gemini-priority-high-immediate",
+      "name": "Gemini Priority High即座対応",
+      "trigger": "priority:high",
+      "action": "immediate_fix",
+      "reasoning": "Gemini Priority Highは最優先で対応"
+    },
+    {
+      "id": "gemini-security-warning",
+      "name": "Geminiセキュリティ警告",
+      "trigger": "security|vulnerable|exploit|xss|injection",
+      "action": "create_issue_and_notify",
+      "reasoning": "セキュリティ問題は即座にIssue化して通知"
+    },
+    {
+      "id": "gemini-performance-suggestion",
+      "name": "Geminiパフォーマンス提案",
+      "trigger": "performance|slow|optimize|memory|bundle",
+      "action": "analyze_and_decide",
+      "reasoning": "AIで分析して修正可能なら実行、不可能ならIssue化"
+    },
+    {
+      "id": "gemini-type-error",
+      "name": "Gemini型エラー指摘",
+      "trigger": "type error|typescript|any type|unknown type",
+      "action": "immediate_fix",
+      "reasoning": "型エラーは自動修正可能な場合が多い"
+    },
+    {
+      "id": "gemini-design-token-issue",
+      "name": "Geminiデザイントークン問題",
+      "trigger": "design token|w3c|token format|token structure",
+      "action": "create_issue",
+      "reasoning": "デザイントークン仕様の変更は慎重に対応"
+    }
+  ],
+  "conflict_resolution": [
+    {
+      "id": "simple-merge-conflict",
+      "name": "単純なマージコンフリクト",
+      "pattern": "<<<<<<< HEAD",
+      "strategy": "analyze_both_changes",
+      "auto_fix": false,
+      "reasoning": "コンフリクトは文脈を理解して解決する必要がある"
+    },
+    {
+      "id": "package-json-conflict",
+      "name": "package.jsonのコンフリクト",
+      "pattern": "package.json",
+      "strategy": "merge_dependencies",
+      "auto_fix": true,
+      "reasoning": "依存関係は両方をマージできる場合が多い"
+    }
+  ],
+  "custom_rules": {
+    "enabled": true,
+    "allow_override": true,
+    "priority": "custom_over_default"
+  }
+}
