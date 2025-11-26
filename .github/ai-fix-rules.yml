@@ -273,6 +273,7 @@ exclude:
     - "**/*.config.js"
     - "**/*.config.ts"
     - "**/generated/**"
+    # Exclude vanilla JS alternative Figma plugin UI sources (see project-context.md)
     - "ui-src/**"
 
   # 自動修正しないディレクトリ
