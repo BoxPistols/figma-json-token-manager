@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://design-tokens.app/schemas/w3c-design-tokens.schema.json",
+  "title": "W3C Design Tokens (DTCG 2025.10)",
+  "description": "Figma-compatible W3C Design Tokens Community Group specification schema",
+  "type": "object",
+  "definitions": {
+    "tokenReference": {
+      "type": "string",
+      "pattern": "^\\{[^{}]+\\}$|^#/[^.]+$",
+      "description": "Token alias: {group.token} or JSON Pointer #/path"
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$",
+      "description": "Hex #RRGGBB or #RRGGBBAA"
+    },
+    "cssColor": {
+      "type": "string",
+      "pattern": "^(rgba?|hsla?)\\(.*\\)$",
+      "description": "CSS color function rgba?(...), hsla?(...)"
+    },
+    "colorValue": {
+      "description": "Color value: hex, css function, or reference",
+      "oneOf": [
+        { "$ref": "#/definitions/hexColor" },
+        { "$ref": "#/definitions/cssColor" },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "dimensionValue": {
+      "description": "Dimension with units or reference",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(px|rem|em|%)$" },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "durationValue": {
+      "description": "Duration in ms/s or reference",
+      "oneOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(ms|s)$" },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "fontWeightValue": {
+      "description": "Font weight: 1-1000, named, or reference",
+      "oneOf": [
+        { "type": "integer", "minimum": 1, "maximum": 1000 },
+        {
+          "type": "string",
+          "enum": ["thin","hairline","extra-light","ultra-light","light","normal","regular","medium","semi-bold","demi-bold","bold","extra-bold","ultra-bold","black","heavy"]
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "cubicBezierValue": {
+      "description": "Cubic bezier [x1,y1,x2,y2] or reference",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "shadowValue": {
+      "description": "Shadow definition or reference",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "offsetX": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "offsetY": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "blur": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "spread": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "color": { "oneOf": [{ "$ref": "#/definitions/colorValue" }, { "$ref": "#/definitions/tokenReference" }] },
+            "inset": { "type": "boolean" }
+          },
+          "required": ["offsetX", "offsetY", "blur", "color"]
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "offsetX": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+              "offsetY": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+              "blur": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+              "spread": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+              "color": { "oneOf": [{ "$ref": "#/definitions/colorValue" }, { "$ref": "#/definitions/tokenReference" }] },
+              "inset": { "type": "boolean" }
+            },
+            "required": ["offsetX", "offsetY", "blur", "color"]
+          }
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "typographyValue": {
+      "description": "Typography composite value or reference",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "fontFamily": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }, { "$ref": "#/definitions/tokenReference" }] },
+            "fontSize": { "oneOf": [{ "type": "number", "minimum": 0 }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "fontWeight": { "$ref": "#/definitions/fontWeightValue" },
+            "lineHeight": { "oneOf": [{ "type": "number", "minimum": 0 }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "letterSpacing": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "paragraphSpacing": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "paragraphIndent": { "oneOf": [{ "type": "number" }, { "type": "string" }, { "$ref": "#/definitions/tokenReference" }] },
+            "textDecoration": { "oneOf": [{ "enum": ["underline","line-through","overline","none"] }, { "$ref": "#/definitions/tokenReference" }] },
+            "textCase": { "oneOf": [{ "enum": ["uppercase","lowercase","capitalize","none"] }, { "$ref": "#/definitions/tokenReference" }] }
+          },
+          "required": ["fontFamily", "fontSize", "fontWeight"]
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "borderValue": {
+      "description": "Border composite value or reference",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "color": { "$ref": "#/definitions/colorValue" },
+            "width": { "$ref": "#/definitions/dimensionValue" },
+            "style": { "oneOf": [{ "enum": ["solid","dashed","dotted","double","groove","ridge","inset","outset","none"] }, { "$ref": "#/definitions/tokenReference" }] }
+          },
+          "required": ["color", "width", "style"]
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "transitionValue": {
+      "description": "Transition composite value or reference",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "duration": { "$ref": "#/definitions/durationValue" },
+            "delay": { "$ref": "#/definitions/durationValue" },
+            "timingFunction": { "$ref": "#/definitions/cubicBezierValue" }
+          },
+          "required": ["duration", "timingFunction"]
+        },
+        { "$ref": "#/definitions/tokenReference" }
+      ]
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Vendor-specific metadata using reverse domain notation",
+      "properties": {
+        "com.figma.plugin": {
+          "type": "object",
+          "properties": {
+            "figmaId": { "type": "string" },
+            "collection": { "type": "string" },
+            "mode": { "type": "string" },
+            "scopes": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "baseToken": {
+      "type": "object",
+      "properties": {
+        "$type": {
+          "enum": [
+            "color","dimension","duration","fontFamily","fontWeight","cubicBezier",
+            "number","opacity","spacing","typography","borderRadius","borderWidth",
+            "borderColor","shadow","blur","textDecoration","textCase","lineHeight",
+            "letterSpacing","paragraphSpacing","fontStyle","breakpoint","icon"
+          ]
+        },
+        "$value": {},
+        "$description": { "type": "string" },
+        "$deprecated": { "oneOf": [{ "type": "boolean" }, { "type": "string" }] },
+        "$extensions": { "$ref": "#/definitions/extensions" }
+      },
+      "required": ["$value"],
+      "additionalProperties": false
+    },
+    "tokenOrGroup": {
+      "oneOf": [
+        { "$ref": "#/definitions/baseToken" },
+        { "$ref": "#/definitions/tokenGroup" }
+      ]
+    },
+    "tokenGroup": {
+      "type": "object",
+      "properties": {
+        "$type": {
+          "enum": [
+            "color","dimension","duration","fontFamily","fontWeight","cubicBezier",
+            "number","opacity","spacing","typography","borderRadius","borderWidth",
+            "borderColor","shadow","blur","textDecoration","textCase","lineHeight",
+            "letterSpacing","paragraphSpacing","fontStyle","breakpoint","icon"
+          ],
+          "description": "Group-level type: all children inherit this type unless overridden"
+        },
+        "$description": { "type": "string" },
+        "$extensions": { "$ref": "#/definitions/extensions" }
+      },
+      "patternProperties": {
+        "^[^${}.]": { "$ref": "#/definitions/tokenOrGroup" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "$schema": { "type": "string", "description": "Reference to this JSON Schema" },
+    "$version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Semantic version" },
+    "$id": { "type": "string", "description": "Unique identifier for the token set" },
+    "$description": { "type": "string", "description": "Description of the token set" }
+  },
+  "patternProperties": {
+    "^[^${}.]": { "$ref": "#/definitions/tokenOrGroup" }
+  },
+  "additionalProperties": false
+}
