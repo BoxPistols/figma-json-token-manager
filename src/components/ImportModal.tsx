@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Upload, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, Upload, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react';
 import type { TokenSet } from '../types';
 import { validateAgainstSchema } from '../utils';
 
