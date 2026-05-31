@@ -6,6 +6,7 @@ import {
   detectCircularReferences,
   exportToW3C,
 } from '../utils';
+import { sampleTokens } from '../data/sampleTokens';
 
 const STORAGE_KEY = 'figma-design-tokens';
 
@@ -21,6 +22,9 @@ export function useTokens() {
       if (stored) {
         const parsed = JSON.parse(stored) as TokenSet;
         setTokenSet(parsed);
+      } else {
+        // Load sample tokens if no data exists
+        setTokenSet(sampleTokens);
       }
     } catch {
       // ignore

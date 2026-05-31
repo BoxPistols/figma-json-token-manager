@@ -133,12 +133,14 @@ export default function App() {
               Figma Design Tokens ManagerからエクスポートしたJSONを読み込むか、
               W3C DTCG形式でトークンを定義してください
             </p>
-            <button
-              onClick={() => setShowImport(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
-            >
-              <Upload className="w-4 h-4" /> JSONをインポート
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => setShowImport(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
+              >
+                <Upload className="w-4 h-4" /> JSONをインポート
+              </button>
+            </div>
           </div>
         )}
       </main>
