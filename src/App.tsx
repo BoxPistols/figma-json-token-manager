@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Upload, Download, Trash2, Search, Palette } from 'lucide-react';
+import { Upload, Download, Trash2, Search, Palette, RotateCcw } from 'lucide-react';
 import { useTokens } from './hooks';
+import { sampleTokens } from './data/sampleTokens';
 import {
   ImportModal,
   ExportModal,
@@ -67,14 +68,23 @@ export default function App() {
               <Download className="w-4 h-4" /> エクスポート
             </button>
             {flattened.length > 0 && (
-              <button
-                onClick={() => {
-                  if (confirm('すべてのトークンを削除しますか？')) clearTokens();
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  onClick={() => importTokens(sampleTokens)}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                  title="サンプルデータをリロード"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('すべてのトークンを削除しますか？')) clearTokens();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -134,6 +144,12 @@ export default function App() {
               W3C DTCG形式でトークンを定義してください
             </p>
             <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => importTokens(sampleTokens)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+              >
+                <RotateCcw className="w-4 h-4" /> Example を読み込む
+              </button>
               <button
                 onClick={() => setShowImport(true)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
