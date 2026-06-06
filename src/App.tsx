@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Upload, Download, Trash2, Search, Palette, RotateCcw } from 'lucide-react';
+import { Upload, Download, Trash2, Search, Palette, RotateCcw, LayoutGrid, List } from 'lucide-react';
 import { useTokens } from './hooks';
 import { sampleTokens } from './data/sampleTokens';
 import {
   ImportModal,
   ExportModal,
   TokenCard,
+  TokenListRow,
   ValidationStatus,
   SchemaGuide,
 } from './components';
+
+type ViewMode = 'grid' | 'list';
 
 export default function App() {
   const {
@@ -24,6 +27,7 @@ export default function App() {
   const [showExport, setShowExport] = useState(false);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const types = Array.from(new Set(flattened.map((t) => t.type))).sort();
 
@@ -94,7 +98,7 @@ export default function App() {
         {/* Validation status */}
         <ValidationStatus validation={validation} circularRefs={circularRefs} />
 
-        {/* Filters */}
+        {/* Filters + view toggle */}
         {flattened.length > 0 && (
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[200px]">
@@ -119,16 +123,63 @@ export default function App() {
                 </option>
               ))}
             </select>
+
+            {/* View mode toggle */}
+            <div className="flex items-center rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+                title="グリッドビュー"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+                title="リストビュー"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Token grid */}
+        {/* Token display */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((token, i) => (
-              <TokenCard key={`${token.path.join('/')}-${i}`} token={token} />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filtered.map((token, i) => (
+                <TokenCard key={`${token.path.join('/')}-${i}`} token={token} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                    <th className="w-10 px-3 py-2.5" />
+                    <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">名前 / パス</th>
+                    <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">型</th>
+                    <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">値</th>
+                    <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">説明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((token, i) => (
+                    <TokenListRow key={`${token.path.join('/')}-${i}`} token={token} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : flattened.length > 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p className="text-sm">一致するトークンがありません</p>
